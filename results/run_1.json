@@ -1,0 +1,340 @@
+{
+  "run": 1,
+  "mode": "live",
+  "accuracy": 0.8667,
+  "correct": 13,
+  "total": 15,
+  "failures": 2,
+  "lessons_added": 4,
+  "total_lessons": 4,
+  "avg_tool_calls": 2.27,
+  "tokens_in": 26991,
+  "tokens_out": 10772,
+  "cost_usd": 0.0,
+  "results": [
+    {
+      "invoice_id": "INV-1001",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "small_auto",
+      "agent_reason": "Invoice amount $480 <= $500, vendor Acme Freight Inc is known and active, PO-4471 is open"
+    },
+    {
+      "invoice_id": "INV-1002",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Vendor ACME FREIGHT is active with open PO PO-4471; invoice amount $420 \u2264 $500, meets POL-001 auto-approve criteria"
+    },
+    {
+      "invoice_id": "INV-1003",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Vendor not found in master"
+    },
+    {
+      "invoice_id": "INV-1004",
+      "expected": "APPROVE",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "po_match",
+      "agent_reason": "Vendor not found in master"
+    },
+    {
+      "invoice_id": "INV-1005",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "missing_po",
+      "agent_reason": "Missing PO number for $12,000 invoice; POL-003 requires escalation for missing/invalid PO"
+    },
+    {
+      "invoice_id": "INV-1006",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "risk_vendor",
+      "agent_reason": "Vendor has risk_flag true (pending tax-compliance review)"
+    },
+    {
+      "invoice_id": "INV-1007",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "recurring_legit",
+      "agent_reason": "Amount $20,050 is within 2% of open PO $20,000; vendor known and active, PO open"
+    },
+    {
+      "invoice_id": "INV-1008",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "PO amount 20000 not within 2% of invoice 23000"
+    },
+    {
+      "invoice_id": "INV-1009",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount >500 matches open PO within 2%, no duplicate, no risk"
+    },
+    {
+      "invoice_id": "INV-1010",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "closed_po",
+      "agent_reason": "PO-4412 is closed, violating POL-007; also amount >500 without open PO"
+    },
+    {
+      "invoice_id": "INV-1011",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "unknown_vendor",
+      "agent_reason": "Vendor not found in vendor master"
+    },
+    {
+      "invoice_id": "INV-1012",
+      "expected": "REJECT",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "duplicate",
+      "agent_reason": "Vendor not found in master"
+    },
+    {
+      "invoice_id": "INV-1013",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Known vendor, open PO matches invoice amount within 2%, no duplicate within 30 days, no risk flags"
+    },
+    {
+      "invoice_id": "INV-1014",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Active vendor, invoice amount matches open PO amount exactly (0% variance), no duplicate history found"
+    },
+    {
+      "invoice_id": "INV-1015",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Known vendor (Osprey Media Group), open PO-4501 matches invoice amount exactly ($48,000), no duplicate within 30 days, no risk flags"
+    }
+  ],
+  "new_lessons": [
+    {
+      "lesson": "When PO number, amount, and date all match, approve the invoice even if the vendor name is not yet in the master; flag for vendor master enrichment rather than escalating (POL-00x).",
+      "tags": [
+        "missing_po",
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Duplicate detection must use PO number + amount + date proximity as matching criteria regardless of vendor master status; missing vendor records do not prevent duplicate identification (POL-00x).",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Escalate only when critical fields (PO match, amount, or date) are ambiguous or missing; a known PO with matching details should never escalate solely due to an unknown vendor (POL-00x).",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Apply case-insensitive, punctuation-tolerant vendor name matching before escalating for 'vendor not found'; unresolved name variants that match an existing PO should be flagged for master cleanup, not escalated (POL-00x).",
+      "tags": [
+        "name_variant",
+        "unknown_vendor"
+      ]
+    }
+  ],
+  "per_invoice": [
+    {
+      "invoice_id": "INV-1001",
+      "tool_calls": 3,
+      "latency_s": 49.28,
+      "tokens_in": 2252,
+      "tokens_out": 1158,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1002",
+      "tool_calls": 2,
+      "latency_s": 12.11,
+      "tokens_in": 1561,
+      "tokens_out": 514,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1003",
+      "tool_calls": 1,
+      "latency_s": 6.35,
+      "tokens_in": 907,
+      "tokens_out": 175,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1004",
+      "tool_calls": 1,
+      "latency_s": 3.57,
+      "tokens_in": 899,
+      "tokens_out": 143,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1005",
+      "tool_calls": 2,
+      "latency_s": 11.33,
+      "tokens_in": 1898,
+      "tokens_out": 460,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1006",
+      "tool_calls": 2,
+      "latency_s": 19.48,
+      "tokens_in": 1560,
+      "tokens_out": 516,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1007",
+      "tool_calls": 3,
+      "latency_s": 21.67,
+      "tokens_in": 2289,
+      "tokens_out": 1236,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1008",
+      "tool_calls": 3,
+      "latency_s": 33.51,
+      "tokens_in": 2238,
+      "tokens_out": 1991,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1009",
+      "tool_calls": 3,
+      "latency_s": 32.55,
+      "tokens_in": 2231,
+      "tokens_out": 1067,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1010",
+      "tool_calls": 2,
+      "latency_s": 18.24,
+      "tokens_in": 1564,
+      "tokens_out": 383,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1011",
+      "tool_calls": 1,
+      "latency_s": 12.0,
+      "tokens_in": 892,
+      "tokens_out": 568,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1012",
+      "tool_calls": 1,
+      "latency_s": 5.3,
+      "tokens_in": 903,
+      "tokens_out": 154,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1013",
+      "tool_calls": 3,
+      "latency_s": 12.87,
+      "tokens_in": 2269,
+      "tokens_out": 678,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1014",
+      "tool_calls": 3,
+      "latency_s": 42.63,
+      "tokens_in": 2123,
+      "tokens_out": 694,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1015",
+      "tool_calls": 4,
+      "latency_s": 54.25,
+      "tokens_in": 3405,
+      "tokens_out": 1035,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 0
+    }
+  ],
+  "timestamp": "2026-09-06T10:04:14.427179+00:00"
+}
