@@ -1,6 +1,10 @@
 # Secrets
 .env
 
+# Run logs (background live runs)
+/live_*.log
+/live_*.err
+
 # Python
 __pycache__/
 *.pyc
