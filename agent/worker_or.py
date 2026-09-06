@@ -123,7 +123,7 @@ def _rule_fallback(ap, invoice):
     return "ESCALATE", f"Amount differs >2% from PO {po_num}; controller review (POL-002).", "POL-002"
 
 
-def run_invoice_or(ap, invoice, playbook_text, max_turns=6) -> dict:
+def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
     t0 = time.time()
     tool_calls = 0
     tokens_in = tokens_out = 0
