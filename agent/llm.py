@@ -54,8 +54,8 @@ def _extract_text(message: dict) -> str:
     return "\n".join(out)
 
 
-def chat(messages, max_tokens=800, temperature=0.2, preferred_model=None,
-         timeout=90) -> dict:
+def chat(messages, max_tokens=500, temperature=0.1, preferred_model=None,
+         timeout=60) -> dict:
     """Call OpenRouter chat. Returns {text, model, usage, error}."""
     if not OPENROUTER_API_KEY:
         return {"text": "", "model": "", "usage": {}, "error": "missing OPENROUTER_API_KEY"}
