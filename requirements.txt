@@ -1,1 +1,4 @@
 anthropic>=0.40.0
+# OpenRouter is called via stdlib urllib (no SDK needed) to stay light.
+# Optional niceties for charts/report:
+# matplotlib>=3.8  (only needed for results/charts.png generation)
