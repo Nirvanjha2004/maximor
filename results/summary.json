@@ -1,0 +1,62 @@
+{
+  "mode": "live",
+  "runs": 1,
+  "started": "2026-09-06T10:04:14.427179+00:00",
+  "finished": "2026-09-06T10:50:34.020507+00:00",
+  "elapsed_s": 815.7,
+  "first_accuracy": 0.8667,
+  "last_accuracy": 0.9333,
+  "gain_pp": 6.7,
+  "total_tokens_in": 43529,
+  "total_tokens_out": 11511,
+  "total_tool_calls": 48,
+  "total_cost_usd": 0.0,
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+  "runs_summary": [
+    {
+      "run": 1,
+      "mode": "live",
+      "accuracy": 0.8667,
+      "correct": 13,
+      "total": 15,
+      "failures": 2,
+      "lessons_added": 4,
+      "total_lessons": 4,
+      "avg_tool_calls": 2.27,
+      "tokens_in": 26991,
+      "tokens_out": 10772,
+      "cost_usd": 0.0,
+      "timestamp": "2026-09-06T10:04:14.427179+00:00"
+    },
+    {
+      "run": 2,
+      "mode": "live",
+      "accuracy": 0.8667,
+      "correct": 13,
+      "total": 15,
+      "failures": 2,
+      "lessons_added": 4,
+      "total_lessons": 8,
+      "avg_tool_calls": 3.13,
+      "tokens_in": 36586,
+      "tokens_out": 10785,
+      "cost_usd": 0.0,
+      "timestamp": "2026-09-06T10:36:39.607107+00:00"
+    },
+    {
+      "run": 3,
+      "mode": "live",
+      "accuracy": 0.9333,
+      "correct": 14,
+      "total": 15,
+      "failures": 1,
+      "lessons_added": 4,
+      "total_lessons": 12,
+      "avg_tool_calls": 3.2,
+      "tokens_in": 43529,
+      "tokens_out": 11511,
+      "cost_usd": 0.0,
+      "timestamp": "2026-09-06T10:50:34.012637+00:00"
+    }
+  ]
+}

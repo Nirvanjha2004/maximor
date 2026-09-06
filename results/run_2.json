@@ -1,0 +1,342 @@
+{
+  "run": 2,
+  "mode": "live",
+  "accuracy": 0.8667,
+  "correct": 13,
+  "total": 15,
+  "failures": 2,
+  "lessons_added": 4,
+  "total_lessons": 8,
+  "avg_tool_calls": 3.13,
+  "tokens_in": 36586,
+  "tokens_out": 10785,
+  "cost_usd": 0.0,
+  "results": [
+    {
+      "invoice_id": "INV-1001",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "small_auto",
+      "agent_reason": "Small invoice, known vendor, valid open PO (POL-001). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1002",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Small invoice, known vendor, valid open PO (POL-001). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1003",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1004",
+      "expected": "APPROVE",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "po_match",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1005",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "missing_po",
+      "agent_reason": "Missing PO number (null); invoice is over $500 requiring valid open PO per POL-003"
+    },
+    {
+      "invoice_id": "INV-1006",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "risk_vendor",
+      "agent_reason": "Vendor has active risk_flag (pending tax-compliance review/finance hold)"
+    },
+    {
+      "invoice_id": "INV-1007",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "recurring_legit",
+      "agent_reason": "Known vendor, open PO within 2% variance ($20,050 vs $20,000), no duplicate within 30 days (prior invoice was 45 days ago)"
+    },
+    {
+      "invoice_id": "INV-1008",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Amount differs >2% from PO PO-4523; controller review (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1009",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount within 2% of PO PO-4530 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1010",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "closed_po",
+      "agent_reason": "PO-4412 is CLOSED - freight invoice for August services but PO is no longer active"
+    },
+    {
+      "invoice_id": "INV-1011",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "unknown_vendor",
+      "agent_reason": "Unknown vendor 'Sunrise Catering' not found in vendor master; requires vendor onboarding per policy. Also missing PO number."
+    },
+    {
+      "invoice_id": "INV-1012",
+      "expected": "REJECT",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "duplicate",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1013",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Known active vendor, open PO-4471 with exact amount match ($12,000), no duplicates found, no risk flags"
+    },
+    {
+      "invoice_id": "INV-1014",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Known vendor (Byte Foods LLC, active), open PO-4482 with exact amount match ($3500), no duplicates found, no risk flags"
+    },
+    {
+      "invoice_id": "INV-1015",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Invoice amount $48,000 matches open PO-4501 exactly (vendor vnd_003, open status, 0% variance). Known active vendor with no risk flags. No duplicate detected."
+    }
+  ],
+  "new_lessons": [
+    {
+      "lesson": "When a PO exists and matches, treat the vendor as established even if absent from the vendor master; escalate only the master-data gap, not the entire invoice. (POL-005)",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Escalation is for ambiguous cases; a clear duplicate (same vendor + PO + amount) must be rejected outright. (POL-005)",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "recurring",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Cross-check PO-4482 in the purchase-order master before escalating a vendor-not-found flag; a valid PO confirms an existing vendor relationship. (POL-005)",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Escalation should narrow uncertainty, not broaden it; route unknowns to onboarding and route clear duplicates to rejection. (POL-005)",
+      "tags": [
+        "duplicate",
+        "unknown_vendor"
+      ]
+    }
+  ],
+  "per_invoice": [
+    {
+      "invoice_id": "INV-1001",
+      "tool_calls": 4,
+      "latency_s": 45.11,
+      "tokens_in": 2360,
+      "tokens_out": 563,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1002",
+      "tool_calls": 3,
+      "latency_s": 95.91,
+      "tokens_in": 1395,
+      "tokens_out": 362,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 0
+    },
+    {
+      "invoice_id": "INV-1003",
+      "tool_calls": 4,
+      "latency_s": 44.31,
+      "tokens_in": 3047,
+      "tokens_out": 818,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 4
+    },
+    {
+      "invoice_id": "INV-1004",
+      "tool_calls": 4,
+      "latency_s": 42.0,
+      "tokens_in": 3027,
+      "tokens_out": 859,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 4
+    },
+    {
+      "invoice_id": "INV-1005",
+      "tool_calls": 3,
+      "latency_s": 47.21,
+      "tokens_in": 3209,
+      "tokens_out": 712,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 3
+    },
+    {
+      "invoice_id": "INV-1006",
+      "tool_calls": 2,
+      "latency_s": 25.86,
+      "tokens_in": 1702,
+      "tokens_out": 505,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1007",
+      "tool_calls": 3,
+      "latency_s": 45.58,
+      "tokens_in": 2447,
+      "tokens_out": 881,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1008",
+      "tool_calls": 3,
+      "latency_s": 37.61,
+      "tokens_in": 2408,
+      "tokens_out": 980,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1009",
+      "tool_calls": 4,
+      "latency_s": 34.91,
+      "tokens_in": 2755,
+      "tokens_out": 653,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1010",
+      "tool_calls": 2,
+      "latency_s": 22.16,
+      "tokens_in": 1702,
+      "tokens_out": 309,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1011",
+      "tool_calls": 2,
+      "latency_s": 31.92,
+      "tokens_in": 2203,
+      "tokens_out": 845,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 4
+    },
+    {
+      "invoice_id": "INV-1012",
+      "tool_calls": 4,
+      "latency_s": 42.58,
+      "tokens_in": 3039,
+      "tokens_out": 1125,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "playbook_lessons_used": 4
+    },
+    {
+      "invoice_id": "INV-1013",
+      "tool_calls": 3,
+      "latency_s": 52.68,
+      "tokens_in": 2432,
+      "tokens_out": 748,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1014",
+      "tool_calls": 3,
+      "latency_s": 34.45,
+      "tokens_in": 2428,
+      "tokens_out": 602,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    },
+    {
+      "invoice_id": "INV-1015",
+      "tool_calls": 3,
+      "latency_s": 38.05,
+      "tokens_in": 2432,
+      "tokens_out": 823,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "playbook_lessons_used": 2
+    }
+  ],
+  "timestamp": "2026-09-06T10:36:39.607107+00:00"
+}

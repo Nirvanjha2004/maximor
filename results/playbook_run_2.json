@@ -1,0 +1,92 @@
+{
+  "run": 2,
+  "total_lessons": 8,
+  "lessons": [
+    {
+      "id": "L01",
+      "lesson": "When PO number, amount, and date all match, approve the invoice even if the vendor name is not yet in the master; flag for vendor master enrichment rather than escalating (POL-00x).",
+      "tags": [
+        "missing_po",
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ],
+      "added_run": 1
+    },
+    {
+      "id": "L02",
+      "lesson": "Duplicate detection must use PO number + amount + date proximity as matching criteria regardless of vendor master status; missing vendor records do not prevent duplicate identification (POL-00x).",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "tolerance",
+        "unknown_vendor"
+      ],
+      "added_run": 1
+    },
+    {
+      "id": "L03",
+      "lesson": "Escalate only when critical fields (PO match, amount, or date) are ambiguous or missing; a known PO with matching details should never escalate solely due to an unknown vendor (POL-00x).",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "unknown_vendor"
+      ],
+      "added_run": 1
+    },
+    {
+      "id": "L04",
+      "lesson": "Apply case-insensitive, punctuation-tolerant vendor name matching before escalating for 'vendor not found'; unresolved name variants that match an existing PO should be flagged for master cleanup, not escalated (POL-00x).",
+      "tags": [
+        "name_variant",
+        "unknown_vendor"
+      ],
+      "added_run": 1
+    },
+    {
+      "id": "L05",
+      "lesson": "When a PO exists and matches, treat the vendor as established even if absent from the vendor master; escalate only the master-data gap, not the entire invoice. (POL-005)",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ],
+      "added_run": 2
+    },
+    {
+      "id": "L06",
+      "lesson": "Escalation is for ambiguous cases; a clear duplicate (same vendor + PO + amount) must be rejected outright. (POL-005)",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "recurring",
+        "tolerance",
+        "unknown_vendor"
+      ],
+      "added_run": 2
+    },
+    {
+      "id": "L07",
+      "lesson": "Cross-check PO-4482 in the purchase-order master before escalating a vendor-not-found flag; a valid PO confirms an existing vendor relationship. (POL-005)",
+      "tags": [
+        "invalid_po",
+        "missing_po",
+        "unknown_vendor"
+      ],
+      "added_run": 2
+    },
+    {
+      "id": "L08",
+      "lesson": "Escalation should narrow uncertainty, not broaden it; route unknowns to onboarding and route clear duplicates to rejection. (POL-005)",
+      "tags": [
+        "duplicate",
+        "unknown_vendor"
+      ],
+      "added_run": 2
+    }
+  ]
+}
