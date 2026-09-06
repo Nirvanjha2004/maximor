@@ -42,11 +42,28 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
     playbook = Playbook()
     invoices = load_invoices()
     invoices_by_id = {inv["id"]: inv for inv in invoices}
+    # Resume numbering when not fresh: continue after highest existing run_*.json
+    start_no = 1
     summaries = []
+    if not fresh:
+        existing = sorted([int(p.stem.split("_")[1]) for p in RESULTS.glob("run_*.json")
+                           if p.stem.split("_")[1].isdigit()], reverse=False)
+        if existing and mode != "mock":
+            start_no = max(existing) + 1
+            # preload prior summaries for overall stats
+            for n in existing:
+                try:
+                    d = json.loads((RESULTS / f"run_{n}.json").read_text(encoding="utf-8"))
+                    summaries.append({k: d[k] for k in (
+                        "run", "mode", "accuracy", "correct", "total", "failures",
+                        "lessons_added", "total_lessons", "avg_tool_calls",
+                        "tokens_in", "tokens_out", "cost_usd", "timestamp") if k in d})
+                except Exception:
+                    pass
     total_in = total_out = total_tools = 0
     t_start = time.time()
 
-    for run_no in range(1, runs + 1):
+    for run_no in range(start_no, start_no + runs):
         ap = APSystem()
         per_invoice = []
         for inv in invoices:
@@ -102,7 +119,7 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
             "run", "mode", "accuracy", "correct", "total", "failures",
             "lessons_added", "total_lessons", "avg_tool_calls",
             "tokens_in", "tokens_out", "cost_usd", "timestamp")})
-        print(f"[run {run_no}/{runs}] accuracy={graded['accuracy']:.2%} "
+        print(f"[run {run_no}] accuracy={graded['accuracy']:.2%} "
               f"({graded['correct']}/{graded['total']}) "
               f"failures={len(failures)} +{added} lessons "
               f"(total {len(playbook.lessons)}) avg_tools={avg_tools}")
