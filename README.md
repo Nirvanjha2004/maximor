@@ -49,12 +49,14 @@ this is the cost/speed control judges asked about.
 | 2 | mock | 80.0% (12/15) | 3.07 | +3 |
 | 3 | mock | 100% (15/15) | 2.67 | +0 |
 | 1 | **live (OpenRouter free model)** | **86.7% (13/15)** | 2.27 | +4 |
+| 2 | **live** | **86.7% (13/15)** | 3.13 | +4 |
+| 3 | **live** | **93.3% (14/15)** | 3.20 | +4 |
 
 * Mock = offline pipeline self-test (simulated characteristic mistakes; proves
   the Try → Grade → Teach → Remember loop end-to-end with zero spend).
 * Live = real free-model validation (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`,
-  $0.00 cost). Run 1 already beats the mock baseline; background runs 2–3
-  continue the curve. See `results/run_*.json` + `results/summary.json`.
+  $0.00 cost, **86.7% → 93.3%, +6.7pp**). See `results/run_*.json` + `results/summary.json`.
+  Run `python report.py` to reprint this table.
 
 Tricky cases the memory learns: `ACME FREIGHT` vs `Acme Freight`
 (name_variant), duplicate vs 30-day recurring billing, ±2% PO tolerance,
