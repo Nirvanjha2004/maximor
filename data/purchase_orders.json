@@ -1,0 +1,9 @@
+{
+  "PO-4471": { "vendor_id": "vnd_001", "amount": 12000, "status": "open", "description": "Freight services - September" },
+  "PO-4482": { "vendor_id": "vnd_002", "amount": 3500, "status": "open", "description": "Catering supplies" },
+  "PO-4501": { "vendor_id": "vnd_003", "amount": 48000, "status": "open", "description": "Media campaign retainer" },
+  "PO-4510": { "vendor_id": "vnd_004", "amount": 9000, "status": "open", "description": "IT managed services" },
+  "PO-4523": { "vendor_id": "vnd_005", "amount": 20000, "status": "open", "description": "Office supplies bulk order" },
+  "PO-4530": { "vendor_id": "vnd_006", "amount": 1150, "status": "open", "description": "Machine parts" },
+  "PO-4412": { "vendor_id": "vnd_001", "amount": 8000, "status": "closed", "description": "Freight services - August" }
+}

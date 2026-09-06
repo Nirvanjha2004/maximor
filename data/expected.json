@@ -1,0 +1,17 @@
+[
+  { "invoice_id": "INV-1001", "expected_decision": "APPROVE",  "reason_tag": "small_auto" },
+  { "invoice_id": "INV-1002", "expected_decision": "APPROVE",  "reason_tag": "name_variant" },
+  { "invoice_id": "INV-1003", "expected_decision": "ESCALATE", "reason_tag": "tolerance_breach" },
+  { "invoice_id": "INV-1004", "expected_decision": "APPROVE",  "reason_tag": "po_match" },
+  { "invoice_id": "INV-1005", "expected_decision": "ESCALATE", "reason_tag": "missing_po" },
+  { "invoice_id": "INV-1006", "expected_decision": "ESCALATE", "reason_tag": "risk_vendor" },
+  { "invoice_id": "INV-1007", "expected_decision": "APPROVE",  "reason_tag": "recurring_legit" },
+  { "invoice_id": "INV-1008", "expected_decision": "ESCALATE", "reason_tag": "tolerance_breach" },
+  { "invoice_id": "INV-1009", "expected_decision": "APPROVE",  "reason_tag": "po_match" },
+  { "invoice_id": "INV-1010", "expected_decision": "ESCALATE", "reason_tag": "closed_po" },
+  { "invoice_id": "INV-1011", "expected_decision": "ESCALATE", "reason_tag": "unknown_vendor" },
+  { "invoice_id": "INV-1012", "expected_decision": "REJECT",   "reason_tag": "duplicate" },
+  { "invoice_id": "INV-1013", "expected_decision": "APPROVE",  "reason_tag": "po_match" },
+  { "invoice_id": "INV-1014", "expected_decision": "APPROVE",  "reason_tag": "name_variant" },
+  { "invoice_id": "INV-1015", "expected_decision": "APPROVE",  "reason_tag": "po_match" }
+]

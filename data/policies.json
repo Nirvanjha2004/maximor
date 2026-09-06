@@ -1,0 +1,9 @@
+{
+  "POL-001": "SMALL INVOICES: Invoices of $500 or less may be auto-approved if the vendor is known and the PO number is valid and open. Amount matching against the PO is not required for these. POL-005 and POL-006 override this rule: never auto-approve an unknown or risk-flagged vendor.",
+  "POL-002": "PO MATCH TOLERANCE: For invoices over $500, approve only if a valid open PO exists and the invoice amount is within ±2% of the PO amount. If the difference is greater than 2%, escalate to the controller. Never approve an invoice that exceeds its PO by more than 2%.",
+  "POL-003": "MISSING OR INVALID PO: If the invoice has no PO number, or the PO number does not exist, escalate for human review. Never reject an invoice solely because its PO is missing.",
+  "POL-004": "DUPLICATES: If an identical invoice (same vendor and same amount) was already processed within the last 30 days of the invoice date, reject it as a duplicate. If the last matching invoice is older than 30 days, treat it as legitimate recurring billing and process it normally.",
+  "POL-005": "UNKNOWN VENDOR: If the vendor cannot be found in the vendor master, escalate for vendor onboarding. Never approve or reject, regardless of the amount.",
+  "POL-006": "RISK-FLAGGED VENDOR: If the vendor has an active risk flag, escalate regardless of amount, even when the PO matches.",
+  "POL-007": "CLOSED PO: If the PO exists but is closed or expired, escalate to procurement. Never approve an invoice against a closed PO."
+}

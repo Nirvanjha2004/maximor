@@ -1,0 +1,17 @@
+[
+  { "id": "INV-1001", "vendor_name": "Acme Freight", "amount": 480, "currency": "USD", "invoice_date": "2026-09-01", "po_number": "PO-4471", "notes": "Partial shipment freight" },
+  { "id": "INV-1002", "vendor_name": "ACME FREIGHT", "amount": 420, "currency": "USD", "invoice_date": "2026-09-01", "po_number": "PO-4471", "notes": "Fuel surcharge" },
+  { "id": "INV-1003", "vendor_name": "Byte Foods", "amount": 3850, "currency": "USD", "invoice_date": "2026-09-01", "po_number": "PO-4482", "notes": "Catering supplies incl. rush fee" },
+  { "id": "INV-1004", "vendor_name": "Byte Foods", "amount": 3500, "currency": "USD", "invoice_date": "2026-09-02", "po_number": "PO-4482", "notes": "Monthly catering supplies" },
+  { "id": "INV-1005", "vendor_name": "Osprey Media", "amount": 12000, "currency": "USD", "invoice_date": "2026-09-02", "po_number": null, "notes": "Ad campaign production - PO to follow" },
+  { "id": "INV-1006", "vendor_name": "NovaTech", "amount": 9000, "currency": "USD", "invoice_date": "2026-09-02", "po_number": "PO-4510", "notes": "Monthly managed services" },
+  { "id": "INV-1007", "vendor_name": "Northwind", "amount": 20050, "currency": "USD", "invoice_date": "2026-09-03", "po_number": "PO-4523", "notes": "Quarterly replenishment" },
+  { "id": "INV-1008", "vendor_name": "Northwind", "amount": 23000, "currency": "USD", "invoice_date": "2026-09-03", "po_number": "PO-4523", "notes": "Additional stock order" },
+  { "id": "INV-1009", "vendor_name": "Vertex Mfg", "amount": 1150, "currency": "USD", "invoice_date": "2026-09-03", "po_number": "PO-4530", "notes": "Spare conveyor parts" },
+  { "id": "INV-1010", "vendor_name": "Acme Freight", "amount": 6000, "currency": "USD", "invoice_date": "2026-09-03", "po_number": "PO-4412", "notes": "August freight - late submission" },
+  { "id": "INV-1011", "vendor_name": "Sunrise Catering", "amount": 300, "currency": "USD", "invoice_date": "2026-09-04", "po_number": null, "notes": "Office lunch order" },
+  { "id": "INV-1012", "vendor_name": "Byte Foods", "amount": 3500, "currency": "USD", "invoice_date": "2026-09-05", "po_number": "PO-4482", "notes": "Resending invoice - please process" },
+  { "id": "INV-1013", "vendor_name": "Acme Freight", "amount": 12000, "currency": "USD", "invoice_date": "2026-09-04", "po_number": "PO-4471", "notes": "September freight - full PO" },
+  { "id": "INV-1014", "vendor_name": "bytefoods", "amount": 3500, "currency": "USD", "invoice_date": "2026-09-04", "po_number": "PO-4482", "notes": "Catering supplies order B" },
+  { "id": "INV-1015", "vendor_name": "Osprey Media", "amount": 48000, "currency": "USD", "invoice_date": "2026-09-05", "po_number": "PO-4501", "notes": "Campaign retainer - full PO amount" }
+]

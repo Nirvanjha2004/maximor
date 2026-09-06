@@ -1,0 +1,4 @@
+[
+  { "id": "INV-0998", "vendor_name": "Byte Foods", "amount": 3500, "processed_date": "2026-09-02" },
+  { "id": "INV-0901", "vendor_name": "Northwind", "amount": 20050, "processed_date": "2026-07-20" }
+]

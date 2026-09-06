@@ -1,0 +1,8 @@
+{
+  "vnd_001": { "name": "Acme Freight Inc", "aka": ["Acme Freight", "ACME FREIGHT"], "status": "active", "risk_flag": false, "risk_note": null },
+  "vnd_002": { "name": "Byte Foods LLC", "aka": ["ByteFoods", "bytefoods"], "status": "active", "risk_flag": false, "risk_note": null },
+  "vnd_003": { "name": "Osprey Media Group", "aka": ["Osprey Media"], "status": "active", "risk_flag": false, "risk_note": null },
+  "vnd_004": { "name": "NovaTech Solutions", "aka": ["NovaTech"], "status": "active", "risk_flag": true, "risk_note": "Pending tax-compliance review (finance hold)" },
+  "vnd_005": { "name": "Northwind Supplies", "aka": ["Northwind"], "status": "active", "risk_flag": false, "risk_note": null },
+  "vnd_006": { "name": "Vertex Manufacturing", "aka": ["Vertex Mfg"], "status": "onboarding", "risk_flag": false, "risk_note": null }
+}
