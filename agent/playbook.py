@@ -27,6 +27,47 @@ REASON_TAGS = [
 MAX_LESSONS = 40
 
 
+def _has_negation(text: str) -> bool:
+    """True if the lesson frames the action as forbidden (never/do not/don't/NOT)."""
+    return bool(re.search(r"\b(never|not|don't|do not|do NOT|NOT)\b.{0,20}\b(reject|approve|approval)\b"
+                          r"|\b(block|forbid|prohibit).{0,20}\b(approv|reject)\b", text, re.I))
+
+
+def lesson_violation(lesson: str) -> str:
+    """Return the POL-00x rule a lesson contradicts, or '' if it looks valid.
+
+    Quality filter for LLM-coach output: run-3 live data showed the coach
+    inventing rules (e.g. 'reject recurring patterns', '12-month lookback')
+    that contradict the policy book and then poison later runs.
+    """
+    t = lesson or ""
+    tl = t.lower()
+    if "\ufffd" in t:
+        return "garbled text"
+    if re.search(r"12.?month|extended lookback|lookback window", tl):
+        return "POL-004 (window is 30 days, not months)"
+    if "recurr" in tl and re.search(r"\breject\b|\brejection\b", tl) and not _has_negation(t):
+        return "POL-004 (recurring >30d is legitimate, never REJECT)"
+    if re.search(r"missing|invalid|\bno po\b|without po|po number.*absent", tl) \
+            and re.search(r"\breject\b", tl) and not _has_negation(t):
+        return "POL-003 (missing/invalid PO -> ESCALATE, never REJECT)"
+    if re.search(r"unknown vendor|vendor.not.found|absent from the vend", tl) \
+            and re.search(r"\bapprov", tl) and not _has_negation(t):
+        return "POL-005 (unknown vendor -> ESCALATE, never APPROVE)"
+    if re.search(r"\brisk", tl) and re.search(r"approv\w* (regardless|even if|despite|irrespective)", tl):
+        return "POL-006 (risk-flag -> ESCALATE, never APPROVE)"
+    if "closed" in tl and re.search(r"\bapprov", tl) and not _has_negation(t):
+        return "POL-007 (closed PO -> ESCALATE, never APPROVE)"
+    if re.search(r"tolerance|2%|exceeds po|outside tolerance|over tolerance", tl) \
+            and re.search(r"\breject\b", tl) and not _has_negation(t):
+        return "POL-002 (tolerance breach -> ESCALATE, never REJECT)"
+    return ""
+
+
+def is_valid_lesson(lesson: str) -> bool:
+    return lesson_violation(lesson) == ""
+
+
 def normalize_name(s: str) -> str:
     return re.sub(r"[^a-z0-9 ]", "", (s or "").lower()).strip()
 
@@ -76,6 +117,8 @@ class Playbook:
     def __init__(self, path: Path = None):
         self.path = Path(path) if path else RESULTS / "playbook.json"
         self.lessons = []
+        self.last_filtered = []  # lessons rejected by the quality filter
+        self.migrated_pruned = 0  # pre-existing lessons pruned on load
         if self.path.exists():
             try:
                 raw = json.loads(self.path.read_text(encoding="utf-8"))
@@ -89,25 +132,45 @@ class Playbook:
                 l.setdefault("added_run", l.get("added_run", 0))
                 l.setdefault("last_used_run", l.get("added_run", 0))
                 l.setdefault("id", f"L{i + 1:02d}")
-            self.lessons = raw
+            # One-time migration: prune stored lessons that contradict POL-00x
+            # (run-3 coach wrote e.g. 'reject recurring patterns', '12-month
+            # lookback'). Bad memory is worse than no memory.
+            kept = []
+            for l in raw:
+                v = lesson_violation(l.get("lesson", ""))
+                if v:
+                    self.migrated_pruned += 1
+                    self.last_filtered.append({"lesson": l.get("lesson", "")[:160],
+                                               "reason": v})
+                else:
+                    kept.append(l)
+            self.lessons = kept
+            for i, l in enumerate(self.lessons):
+                l["id"] = f"L{i + 1:02d}"
 
     def save(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self.lessons, indent=2), encoding="utf-8")
 
     def add_lessons(self, lessons, run_no: int) -> int:
-        """Append new lessons (ExpeL-style voting dedup, capped). Returns added.
+        """Append new lessons (ExpeL-style voting dedup + quality filter).
 
-        Duplicate lesson text UPVOTEs the existing lesson (importance +1)
-        instead of creating a copy; brand-new lessons start at importance 2.
-        Lessons DOWNVOTEd to 0 are pruned; when over MAX_LESSONS the lowest
-        importance / oldest lessons are evicted first.
+        Returns count actually added. Duplicate lesson text UPVOTEs the
+        existing lesson instead of copying; lessons contradicting POL-00x
+        (see lesson_violation) are rejected and recorded in self.last_filtered
+        so the Coach signal stays clean. Lessons DOWNVOTEd to 0 are pruned;
+        when over MAX_LESSONS the lowest importance / oldest are evicted.
         """
         added = 0
+        self.last_filtered = []
         by_key = {normalize_name(l["lesson"])[:60]: l for l in self.lessons}
         for l in lessons:
             lesson = (l.get("lesson") or "").strip()
             if not lesson:
+                continue
+            v = lesson_violation(lesson)
+            if v:
+                self.last_filtered.append({"lesson": lesson[:160], "reason": v})
                 continue
             key = normalize_name(lesson)[:60]
             tags = [t for t in (l.get("tags") or []) if t in TAG_VOCAB or t in REASON_TAGS]
@@ -141,35 +204,48 @@ class Playbook:
             l["id"] = f"L{i + 1:02d}"
         return added
 
-    def apply_outcome(self, lesson_ids, correct: bool, run_no: int):
-        """ExpeL-style credit assignment: lessons that helped get UPVOTEd.
+    def apply_outcome(self, lesson_ids, correct: bool, run_no: int,
+                        reason_tag: str = "") -> dict:
+        """Fine-grained credit assignment: only decisive lessons get votes.
 
-        Called once per invoice after the Referee grades. Correct decisions
-        reinforce the lessons used; incorrect ones DOWNVOTE them. Lessons at
-        importance 0 are pruned immediately so bad advice cannot propagate
-        (cf. Reflexion/ExpeL memory-quality warnings).
+        Called once per invoice after the Referee grades. A lesson is
+        'decisive' only if its tags contain the invoice's graded reason_tag
+        (post-hoc evaluation signal, like ExpeL's success/failure pairs) —
+        lessons merely injected but unrelated to the outcome are left
+        untouched instead of free-riding on every correct decision. Lessons
+        at importance 0 are pruned immediately. Returns vote stats.
         """
+        stats = {"upvoted": 0, "downvoted": 0, "skipped": 0, "pruned": 0}
         if not lesson_ids:
-            return
+            return stats
         keep = []
         ids = set(lesson_ids)
         for l in self.lessons:
             if l.get("id") not in ids:
                 keep.append(l)
                 continue
+            if reason_tag and reason_tag not in (l.get("tags") or []):
+                stats["skipped"] += 1
+                keep.append(l)
+                continue
             l["last_used_run"] = run_no
             if correct:
                 l["importance"] = int(l.get("importance", 2)) + 1
                 l["successes"] = int(l.get("successes", 0)) + 1
+                stats["upvoted"] += 1
             else:
                 l["importance"] = int(l.get("importance", 2)) - 1
                 l["failures"] = int(l.get("failures", 0)) + 1
+                stats["downvoted"] += 1
             if int(l["importance"]) > 0:
                 keep.append(l)
+            else:
+                stats["pruned"] += 1
             # else: pruned — bad memory is worse than no memory.
         self.lessons = keep
         for i, l in enumerate(self.lessons):
             l["id"] = f"L{i + 1:02d}"
+        return stats
 
     def score(self, lesson, tags: set, current_run: int) -> float:
         """Generative-Agents-style score: relevance + importance + recency."""

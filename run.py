@@ -93,13 +93,21 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
             total_out += m.get("tokens_out", 0)
             total_tools += m.get("tool_calls", 0)
         graded = grade(ap)
-        # ExpeL-style credit assignment: reinforce lessons that helped, prune those
-        # that misled — bad memory is worse than no memory.
+        # Fine-grained credit assignment: only lessons decisive for the graded
+        # outcome (tags contain the invoice's reason_tag) earn a vote; merely
+        # injected lessons are skipped instead of free-riding.
         correct_by_id = {r["invoice_id"]: r["correct"] for r in graded["results"]}
+        tag_by_id = {r["invoice_id"]: r.get("reason_tag", "") for r in graded["results"]}
+        vote_totals = {"upvoted": 0, "downvoted": 0, "skipped": 0, "pruned": 0}
         for m in per_invoice:
-            playbook.apply_outcome(m.get("playbook_lesson_ids", []),
-                                   bool(correct_by_id.get(m["invoice_id"], False)),
-                                   run_no)
+            st = playbook.apply_outcome(m.get("playbook_lesson_ids", []),
+                                        bool(correct_by_id.get(m["invoice_id"], False)),
+                                        run_no,
+                                        reason_tag=tag_by_id.get(m["invoice_id"], ""))
+            for k in vote_totals:
+                vote_totals[k] += st.get(k, 0)
+        if playbook.migrated_pruned:
+            print(f"   playbook: pruned {playbook.migrated_pruned} POL-contradicting lesson(s) on load")
         # Coach step (Reflexion-style: give the coach the failed thought trace
         # so lessons fix the credit-assignment point, not just the outcome).
         failures = graded["failures"]
@@ -119,14 +127,22 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
             lessons = ensure_tags(raw, failures, lambda inv: observable_tags(tag_ap, inv),
                                   invoices_by_id)[:max_lessons]
         added = playbook.add_lessons(lessons, run_no) if failures else 0
+        filtered = list(playbook.last_filtered) if failures else []
+        if filtered:
+            print(f"   coach filter: rejected {len(filtered)} POL-contradicting lesson(s)")
+            for fl in filtered[:3]:
+                print(f"      REJECTED [{fl['reason']}] {(fl['lesson'])[:100]}")
         playbook.save()
         playbook.snapshot(run_no)
         avg_tools = round(sum(m["tool_calls"] for m in per_invoice) / len(per_invoice), 2)
+        vote_line = (f"votes +{vote_totals['upvoted']}/-{vote_totals['downvoted']} "
+                     f"skip {vote_totals['skipped']} prune {vote_totals['pruned']}")
         summary = {
             "run": run_no, "mode": mode,
             "accuracy": graded["accuracy"], "correct": graded["correct"],
             "total": graded["total"], "failures": len(failures),
             "lessons_added": added, "total_lessons": len(playbook.lessons),
+            "lessons_filtered": len(filtered), "votes": vote_totals,
             "avg_tool_calls": avg_tools,
             "tokens_in": sum(m.get("tokens_in", 0) for m in per_invoice),
             "tokens_out": sum(m.get("tokens_out", 0) for m in per_invoice),
@@ -145,7 +161,7 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
         print(f"[run {run_no}] accuracy={graded['accuracy']:.2%} "
               f"({graded['correct']}/{graded['total']}) "
               f"failures={len(failures)} +{added} lessons "
-              f"(total {len(playbook.lessons)}) avg_tools={avg_tools}")
+              f"(total {len(playbook.lessons)}) avg_tools={avg_tools} {vote_line}")
         for f in failures[:6]:
             print(f"   FAIL {f['invoice_id']}: got={f['got']} want={f['expected']} [{f['reason_tag']}]")
 

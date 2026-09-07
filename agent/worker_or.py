@@ -124,15 +124,15 @@ def _rule_fallback(ap, invoice):
     return "ESCALATE", f"Amount differs >2% from PO {po_num}; controller review (POL-002).", "POL-002"
 
 
-def _self_refine_fix(decision: str, reason: str, tool_notes: dict) -> tuple:
+def _self_refine_fix(decision: str, reason: str, tool_notes: dict, invoice: dict = None) -> tuple:
     """Deterministic Self-Refine feedback pass (no extra LLM call).
 
     Catches hard policy violations visible in already-fetched tool outputs:
     POL-003 (missing/invalid PO must ESCALATE, never REJECT), POL-005/006/007
-    (unknown / risk / closed-PO must ESCALATE, never APPROVE). Returns
+    (unknown / risk / closed-PO must ESCALATE, never APPROVE), POL-002
+    (tolerance breach must ESCALATE, never REJECT). Returns
     (decision, reason, refined_bool).
     """
-    refined = False
     if decision == "REJECT" and tool_notes.get("po_bad"):
         return "ESCALATE", (reason + " [self-refine: POL-003 missing/invalid PO -> ESCALATE]").strip(), True
     if decision == "APPROVE" and tool_notes.get("vendor_bad"):
@@ -141,7 +141,19 @@ def _self_refine_fix(decision: str, reason: str, tool_notes: dict) -> tuple:
         return "ESCALATE", (reason + " [self-refine: POL-006 risk-flag -> ESCALATE]").strip(), True
     if decision == "APPROVE" and tool_notes.get("po_closed"):
         return "ESCALATE", (reason + " [self-refine: POL-007 closed PO -> ESCALATE]").strip(), True
-    return decision, reason, refined
+    if decision == "REJECT" and invoice:
+        # POL-002: amount over $500 outside ±2% of an open PO is a tolerance
+        # breach -> ESCALATE, never REJECT (run-4 INV-1008 failure class).
+        try:
+            amt = float(invoice.get("amount", 0))
+            po_amt = float(tool_notes.get("po_amount") or 0)
+            if (amt > 500 and po_amt > 0 and not tool_notes.get("po_closed")
+                    and not tool_notes.get("po_bad")
+                    and abs(amt - po_amt) / po_amt > 0.02):
+                return "ESCALATE", (reason + " [self-refine: POL-002 tolerance breach -> ESCALATE]").strip(), True
+        except (ValueError, TypeError, ZeroDivisionError):
+            pass
+    return decision, reason, False
 
 
 def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
@@ -174,7 +186,7 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
             dec = str(parsed.get("decision", "")).upper().strip()
             reason = str(parsed.get("reason", ""))[:400]
             if dec in ("APPROVE", "REJECT", "ESCALATE"):
-                dec, reason, refined = _self_refine_fix(dec, reason, tool_notes)
+                dec, reason, refined = _self_refine_fix(dec, reason, tool_notes, invoice)
                 prev = ap.decisions.get(invoice["id"], {})
                 ap.decisions[invoice["id"]] = {"decision": dec, "reason": reason}
                 if refined:
@@ -208,6 +220,11 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
                 tool_notes["po_bad"] = True
             elif result.get("status") != "open":
                 tool_notes["po_closed"] = True
+            else:
+                try:
+                    tool_notes["po_amount"] = float(result.get("amount") or 0)
+                except (ValueError, TypeError):
+                    pass
         if not invoice.get("po_number"):
             tool_notes["po_bad"] = True
         history.append({"role": "assistant", "content": json.dumps(parsed)})

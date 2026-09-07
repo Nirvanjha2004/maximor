@@ -14,7 +14,8 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 
 COACH_SYSTEM = """You are the Coach for an accounts-payable triage agent. Given failed invoices (expected vs got + policy context), write short reusable lessons.
 Reply with ONLY a JSON array, max 4 items, each: {"lesson": "<one or two sentences, imperative, cites POL-00x>", "tags": ["<subset of: small_amount,tolerance,missing_po,invalid_po,closed_po,risk_vendor,unknown_vendor,name_variant,duplicate,recurring>"]}.
-Lessons must be general rules, not invoice-specific. No other text."""
+Lessons must be general rules, not invoice-specific. No other text.
+HARD CONSTRAINTS (violations are auto-rejected): POL-003 missing/invalid PO -> ESCALATE never REJECT; POL-005 unknown vendor -> ESCALATE never APPROVE/REJECT; POL-006 risk-flag -> ESCALATE never APPROVE; POL-007 closed PO -> ESCALATE never APPROVE; POL-002 tolerance breach (>2% or over $500 without open PO match) -> ESCALATE never REJECT; POL-004 duplicate window is 30 days — recurring billing older than 30 days is legitimate, NEVER tell the agent to reject recurring invoices or to use any other window (no 12-month/extended lookbacks)."""
 
 
 def _scripted(failures, tag_fn):
