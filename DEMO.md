@@ -30,10 +30,14 @@ Say: "Outputs get better through self-reflection and growing memory — exactly
 what Track 1 asks for."
 
 ## 1:55–2:30 — Real-model proof (the credibility)
-Show `results/run_1.json` (mode=live): **86.7% with a free OpenRouter model,
-$0.00 cost**. Pick two invoices: INV-1001 APPROVE (POL-001) and INV-1006
-ESCALATE (risk_flag POL-006) with correct tool traces.
-Say: "Mock proves the loop; live proves it works with a real model for free."
+Show `python report.py` output: live **86.7% → 100% (+13.3pp) over 7 runs,
+$0.00 cost** on OpenRouter free models. Tell the honest dip story — run 4 fell
+to 80% on noisy coach lessons, the quality filter + voting fixed it, run 7 hit
+15/15. Pick three invoices: INV-1001 APPROVE (POL-001), INV-1006 ESCALATE
+(risk_flag POL-006), INV-1012 REJECT (duplicate caught via PO-linked vendor
+resolution — `Byte Foods` is not in the vendor master).
+Say: "Mock proves the loop; live proves it works with a real model for free —
+and the dips prove the self-correction is real, not cherry-picked."
 
 ## 2:30–2:50 — AO build process (mandatory)
 Screen-record AO dashboard: sessions used, orchestrator + workers, branches.
@@ -42,8 +46,9 @@ AO ran the fleet while we kept the loop tight."
 
 ## 2:50–3:00 — Close
 > "EvolveAP: give any agent third-party tools + a grading rubric, and it gets
-> measurably better — 33% to 100% in three runs, cheaper each time. Code,
-> evals, and playbook snapshots are on GitHub. Thank you."
+> measurably better — 33% to 100% in three mock runs, 86.7% to 100% live,
+> cheaper each time, all for $0.00. Code, evals, and playbook snapshots are
+> on GitHub. Thank you."
 
 Checklist before upload: track = Track 1, problem/users, repo link, video link,
 architecture + eval method, metrics screenshot, team names.
