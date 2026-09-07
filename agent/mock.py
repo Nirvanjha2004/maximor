@@ -58,8 +58,9 @@ LESSON_TEMPLATES = {
                   "approve against a closed PO (POL-007)."),
     "unknown_vendor": ("If lookup_vendor returns found=false, ESCALATE for vendor onboarding even for "
                        "small amounts; never approve or reject (POL-005)."),
-    "duplicate": ("Call lookup_invoice_history for vendor+amount: if a match was processed within 30 "
-                  "days of the invoice date, REJECT as duplicate (POL-004)."),
+    "duplicate": ("Call lookup_invoice_history for vendor+amount: if the same amount was processed "
+                  "1-30 days BEFORE the invoice date, REJECT as duplicate (POL-004). Same-day rows "
+                  "are the same record, not a duplicate."),
     "recurring_legit": ("A history match older than 30 days is legitimate recurring billing: process it "
                         "normally per the other policies, do NOT reject as duplicate (POL-004)."),
     "small_auto": ("Small invoices (<= $500) with a known vendor and valid open PO are auto-approved "

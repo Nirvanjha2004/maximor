@@ -96,31 +96,41 @@ def _rule_fallback(ap, invoice):
     teaches the LLM path first.
     """
     from datetime import date
+    po_num = (invoice.get("po_number") or "").strip()
     vid, vendor = ap.find_vendor(invoice["vendor_name"])
+    via_po = ""
     if not vendor:
-        return "ESCALATE", "Vendor not found in master; onboarding required (POL-005).", "POL-005"
+        # Name-variant cross-check (INV-1004 class): an unrecognized vendor
+        # name on a valid PO is established through the PO's vendor —
+        # but only when the names are plausibly related.
+        vid, vendor, used_po = ap.resolve_vendor_via_po(
+            invoice["vendor_name"], po_num)
+        if vendor:
+            via_po = " (vendor established via PO)"
+        else:
+            return "ESCALATE", "Vendor not found in master; onboarding required (POL-005).", "POL-005"
     if vendor.get("risk_flag"):
         return "ESCALATE", f"Vendor risk-flagged: {vendor.get('risk_note','review')} (POL-006).", "POL-006"
-    po_num = (invoice.get("po_number") or "").strip()
     po = ap.pos.get(po_num.upper()) if po_num else None
     if not po_num or not po:
         return "ESCALATE", "Missing or invalid PO; human review required (POL-003).", "POL-003"
     if po.get("status") != "open":
         return "ESCALATE", f"PO {po_num} is {po.get('status')}; escalate to procurement (POL-007).", "POL-007"
-    # duplicate check within 30 days
+    # duplicate check: same vendor+amount processed 1-30 days BEFORE the
+    # invoice date (same-day rows are the same record, not a duplicate —
+    # cf. INV-1004 vs INV-0998). Name-variant aware via history tool.
     amt = float(invoice["amount"])
     d1 = date.fromisoformat(invoice["invoice_date"])
-    for h in ap.history:
-        h_vid, _ = ap.find_vendor(h["vendor_name"])
-        if h_vid == vid and abs(float(h["amount"]) - amt) < 0.005:
-            d2 = date.fromisoformat(h["processed_date"])
-            if (d1 - d2).days <= 30:
-                return "REJECT", "Identical invoice processed within 30 days (POL-004).", "POL-004"
+    hist = ap.tool_lookup_invoice_history(invoice["vendor_name"], amt).get("matches", [])
+    for h in hist:
+        d2 = date.fromisoformat(h["processed_date"])
+        if 0 < (d1 - d2).days <= 30:
+            return "REJECT", "Identical invoice processed within 30 days (POL-004).", "POL-004"
     if amt <= 500:
-        return "APPROVE", "Small invoice, known vendor, valid open PO (POL-001).", "POL-001"
+        return "APPROVE", f"Small invoice, known vendor, valid open PO (POL-001).{via_po}", "POL-001"
     po_amt = float(po["amount"])
     if po_amt and abs(amt - po_amt) / po_amt <= 0.02:
-        return "APPROVE", f"Amount within 2% of PO {po_num} (POL-002).", "POL-002"
+        return "APPROVE", f"Amount within 2% of PO {po_num} (POL-002).{via_po}", "POL-002"
     return "ESCALATE", f"Amount differs >2% from PO {po_num}; controller review (POL-002).", "POL-002"
 
 
@@ -162,6 +172,8 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
     tokens_in = tokens_out = 0
     thoughts: list = []
     tool_notes = {}  # evidence for the self-refine pass
+    llm_errors: list = []  # per-turn API errors (throttle forensics)
+    llm_model = ""
     history = [
         {"role": "system", "content": SYSTEM + (f"\n\n{playbook_text}" if playbook_text else "")},
         {"role": "user", "content": f"Triage this invoice JSON:\n{json.dumps(invoice)}\nStart with lookup_vendor, then lookup_po, get_policies, lookup_invoice_history as needed. One JSON per turn. Include a short 'thought' field each turn."},
@@ -172,6 +184,10 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
         u = out.get("usage", {}) or {}
         tokens_in += int(u.get("prompt_tokens", 0))
         tokens_out += int(u.get("completion_tokens", 0))
+        if out.get("model"):
+            llm_model = out["model"]
+        if out.get("error"):
+            llm_errors.append(str(out["error"])[:200])
         parsed = _parse_json(out.get("text", ""))
         thought = (parsed.get("thought", "") if parsed else "") or ""
         if thought:
@@ -245,8 +261,8 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
     return {"invoice_id": invoice["id"], "tool_calls": tool_calls,
             "latency_s": latency, "tokens_in": tokens_in,
             "tokens_out": tokens_out, "cost_usd": 0.0,
-            "fallback": used_fallback, "model": "",
-            "thoughts": thoughts, "trace": trace}
+            "fallback": used_fallback, "model": llm_model,
+            "thoughts": thoughts, "trace": trace, "llm_errors": llm_errors}
 
 
 def tags_for_invoice(ap, invoice):

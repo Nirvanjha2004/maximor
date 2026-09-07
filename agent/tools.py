@@ -38,6 +38,32 @@ class APSystem:
                 return vid, v
         return None, None
 
+    def resolve_vendor_via_po(self, vendor_name: str, po_number: str):
+        """Name-variant cross-check: resolve an unrecognized invoice vendor
+        through its purchase order (INV-1004 class).
+
+        If the vendor name is not in the master but the PO exists, the PO's
+        vendor is the established counterparty — but only when the names are
+        plausibly related (one normalized form contains the other), so a
+        truly wrong vendor on a valid PO still escalates. Returns
+        (vid, vendor, via_po_bool).
+        """
+        vid, vendor = self.find_vendor(vendor_name)
+        if vendor:
+            return vid, vendor, False
+        po = self.pos.get((po_number or "").strip().upper())
+        if not po:
+            return None, None, False
+        po_vid = po.get("vendor_id")
+        po_vendor = self.vendors.get(po_vid)
+        if not po_vendor:
+            return None, None, False
+        n_inv = normalize_name(vendor_name)
+        n_po = normalize_name(po_vendor.get("name", ""))
+        if n_inv and n_po and (n_inv in n_po or n_po in n_inv):
+            return po_vid, po_vendor, True
+        return None, None, False
+
     def get_invoice(self, invoice_id: str):
         for inv in self.invoices:
             if inv["id"] == invoice_id:
@@ -70,13 +96,29 @@ class APSystem:
         """Prior invoices already processed for this vendor+amount (duplicate check)."""
         vid, _ = self.find_vendor(vendor_name)
         if not vid:
-            return {"matches": []}
+            # Name-variant fallback: match history entries by normalized name
+            # string directly (INV-1012 class: "Byte Foods" unresolvable but
+            # identical string sits in history).
+            n = normalize_name(vendor_name)
+            matches = [h for h in self.history
+                       if normalize_name(h["vendor_name"]) == n
+                       and abs(float(h["amount"]) - float(amount)) < 0.005]
+            return {"matches": matches}
 
         def _hist_vendor_id(h):
             h_vid, _ = self.find_vendor(h["vendor_name"])
-            return h_vid
+            if h_vid:
+                return h_vid
+            # Same string-fallback for history rows under name variants.
+            return normalize_name(h["vendor_name"])
 
-        matches = [h for h in self.history if _hist_vendor_id(h) == vid
+        def _same_vendor(h):
+            h_vid = _hist_vendor_id(h)
+            if isinstance(h_vid, str) and h_vid.startswith("vnd_"):
+                return h_vid == vid
+            return h_vid == normalize_name(vendor_name)
+
+        matches = [h for h in self.history if _same_vendor(h)
                    and abs(float(h["amount"]) - float(amount)) < 0.005]
         return {"matches": matches}
 

@@ -99,14 +99,28 @@ def observable_tags(ap, inv) -> set:
     else:
         tags.add("tolerance")
 
-    # duplicate / recurring routing via prior history
+    # duplicate / recurring routing via prior history (same-day rows are the
+    # same record, not a duplicate: strictly-prior 1-30d window, cf. INV-1004)
     if vid:
         for h in ap.history:
             h_vid, _ = ap.find_vendor(h["vendor_name"])
             if h_vid == vid and abs(float(h["amount"]) - float(inv["amount"])) < 0.005:
                 d1 = date.fromisoformat(inv["invoice_date"])
                 d2 = date.fromisoformat(h["processed_date"])
-                if (d1 - d2).days <= 30:
+                if 0 < (d1 - d2).days <= 30:
+                    tags.add("duplicate")
+                else:
+                    tags.add("recurring")
+    else:
+        # Name-variant fallback: match history by normalized name string so
+        # duplicate lessons still route when the vendor is unresolvable.
+        n = normalize_name(inv["vendor_name"])
+        for h in ap.history:
+            if normalize_name(h["vendor_name"]) == n \
+                    and abs(float(h["amount"]) - float(inv["amount"])) < 0.005:
+                d1 = date.fromisoformat(inv["invoice_date"])
+                d2 = date.fromisoformat(h["processed_date"])
+                if 0 < (d1 - d2).days <= 30:
                     tags.add("duplicate")
                 else:
                     tags.add("recurring")
