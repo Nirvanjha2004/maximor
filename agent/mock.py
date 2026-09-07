@@ -88,7 +88,9 @@ def run_invoice_mock(ap, invoice, playbook_text, lessons_retrieved, reason_tag):
     return {"invoice_id": invoice["id"], "tool_calls": tool_calls,
             "latency_s": round(0.8 + 0.3 * tool_calls, 2),
             "tokens_in": 800 + 250 * tool_calls + 30 * n_lessons,
-            "tokens_out": 150, "cost_usd": 0.0}
+            "tokens_out": 150, "cost_usd": 0.0,
+            "thoughts": [f"Mock plan for {reason_tag}: {'apply playbook' if learned else 'sloppy shortcut'}"],
+            "trace": {"thoughts": [], "tool_notes": {}, "refined": False}}
 
 
 def coach_mock(failures, tag_fn, run_no):

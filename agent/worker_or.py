@@ -17,16 +17,17 @@ from .llm import chat
 from .playbook import observable_tags
 
 TOOLS_HELP = """You can use these tools (one per turn). Reply with ONLY one JSON object per turn.
-{"call": {"tool": "lookup_vendor", "args": {"vendor_name": "..."}}}
-{"call": {"tool": "lookup_po", "args": {"po_number": "..."}}}
-{"call": {"tool": "lookup_invoice_history", "args": {"vendor_name": "...", "amount": 0}}}
-{"call": {"tool": "get_policies", "args": {}}}
+{"thought": "brief plan", "call": {"tool": "lookup_vendor", "args": {"vendor_name": "..."}}}
+{"thought": "brief plan", "call": {"tool": "lookup_po", "args": {"po_number": "..."}}}
+{"thought": "brief plan", "call": {"tool": "lookup_invoice_history", "args": {"vendor_name": "...", "amount": 0}}}
+{"thought": "brief plan", "call": {"tool": "get_policies", "args": {}}}
 When you have enough evidence, reply with ONLY:
-{"decision": "APPROVE|REJECT|ESCALATE", "reason": "short reason", "policy": "POL-001..POL-007"}
+{"thought": "why this decision follows the policies", "decision": "APPROVE|REJECT|ESCALATE", "reason": "short reason", "policy": "POL-001..POL-007"}
+The "thought" field is optional but recommended (ReAct): use it to track your plan, note exceptions, and avoid repeating failed calls.
 Rules: POL-001 small<=500 auto-approve if known vendor+open PO. POL-002 over 500 needs open PO within 2%. POL-003 missing/invalid PO -> ESCALATE never REJECT. POL-004 same vendor+amount within 30 days -> REJECT else normal. POL-005 unknown vendor -> ESCALATE. POL-006 risk_flag -> ESCALATE. POL-007 closed PO -> ESCALATE."""
 
 SYSTEM = ("You are an accounts-payable triage agent. Triage ONE invoice. "
-          "Always verify with tools before deciding. " + TOOLS_HELP)
+          "Think step by step (thought), then act: always verify with tools before deciding. " + TOOLS_HELP)
 
 
 def _parse_json(text: str):
@@ -123,13 +124,35 @@ def _rule_fallback(ap, invoice):
     return "ESCALATE", f"Amount differs >2% from PO {po_num}; controller review (POL-002).", "POL-002"
 
 
+def _self_refine_fix(decision: str, reason: str, tool_notes: dict) -> tuple:
+    """Deterministic Self-Refine feedback pass (no extra LLM call).
+
+    Catches hard policy violations visible in already-fetched tool outputs:
+    POL-003 (missing/invalid PO must ESCALATE, never REJECT), POL-005/006/007
+    (unknown / risk / closed-PO must ESCALATE, never APPROVE). Returns
+    (decision, reason, refined_bool).
+    """
+    refined = False
+    if decision == "REJECT" and tool_notes.get("po_bad"):
+        return "ESCALATE", (reason + " [self-refine: POL-003 missing/invalid PO -> ESCALATE]").strip(), True
+    if decision == "APPROVE" and tool_notes.get("vendor_bad"):
+        return "ESCALATE", (reason + " [self-refine: POL-005 unknown vendor -> ESCALATE]").strip(), True
+    if decision == "APPROVE" and tool_notes.get("risk"):
+        return "ESCALATE", (reason + " [self-refine: POL-006 risk-flag -> ESCALATE]").strip(), True
+    if decision == "APPROVE" and tool_notes.get("po_closed"):
+        return "ESCALATE", (reason + " [self-refine: POL-007 closed PO -> ESCALATE]").strip(), True
+    return decision, reason, refined
+
+
 def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
     t0 = time.time()
     tool_calls = 0
     tokens_in = tokens_out = 0
+    thoughts: list = []
+    tool_notes = {}  # evidence for the self-refine pass
     history = [
         {"role": "system", "content": SYSTEM + (f"\n\n{playbook_text}" if playbook_text else "")},
-        {"role": "user", "content": f"Triage this invoice JSON:\n{json.dumps(invoice)}\nStart with lookup_vendor, then lookup_po, get_policies, lookup_invoice_history as needed. One JSON per turn."},
+        {"role": "user", "content": f"Triage this invoice JSON:\n{json.dumps(invoice)}\nStart with lookup_vendor, then lookup_po, get_policies, lookup_invoice_history as needed. One JSON per turn. Include a short 'thought' field each turn."},
     ]
     transcript = []
     for _ in range(max_turns):
@@ -138,16 +161,25 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
         tokens_in += int(u.get("prompt_tokens", 0))
         tokens_out += int(u.get("completion_tokens", 0))
         parsed = _parse_json(out.get("text", ""))
-        transcript.append({"model_text": (out.get("text", "") or "")[:600], "parsed": bool(parsed)})
+        thought = (parsed.get("thought", "") if parsed else "") or ""
+        if thought:
+            thoughts.append(str(thought)[:300])
+        transcript.append({"model_text": (out.get("text", "") or "")[:600], "parsed": bool(parsed),
+                           "thought": str(thought)[:300]})
         if not parsed:
             history.append({"role": "assistant", "content": out.get("text", "") or "..."})
-            history.append({"role": "user", "content": 'Reply with ONLY one JSON object: {"call": {"tool": ..., "args": {...}}} or {"decision": ...}.'})
+            history.append({"role": "user", "content": 'Reply with ONLY one JSON object: {"thought": "...", "call": {"tool": ..., "args": {...}}} or {"thought": "...", "decision": ...}.'})
             continue
         if "decision" in parsed:
             dec = str(parsed.get("decision", "")).upper().strip()
             reason = str(parsed.get("reason", ""))[:400]
             if dec in ("APPROVE", "REJECT", "ESCALATE"):
+                dec, reason, refined = _self_refine_fix(dec, reason, tool_notes)
+                prev = ap.decisions.get(invoice["id"], {})
                 ap.decisions[invoice["id"]] = {"decision": dec, "reason": reason}
+                if refined:
+                    transcript.append({"self_refine": True,
+                                       "note": "deterministic policy fix applied"})
                 break
             history.append({"role": "assistant", "content": json.dumps(parsed)})
             history.append({"role": "user", "content": "decision must be APPROVE, REJECT or ESCALATE. Try again with ONLY JSON."})
@@ -165,8 +197,21 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
             args.setdefault("amount", invoice["amount"])
         result = _exec_tool(ap, tool, args)
         tool_calls += 1
+        # Record evidence for the self-refine pass.
+        if tool == "lookup_vendor" and isinstance(result, dict):
+            if not result.get("found"):
+                tool_notes["vendor_bad"] = True
+            if result.get("risk_flag"):
+                tool_notes["risk"] = True
+        if tool == "lookup_po" and isinstance(result, dict):
+            if not result.get("found"):
+                tool_notes["po_bad"] = True
+            elif result.get("status") != "open":
+                tool_notes["po_closed"] = True
+        if not invoice.get("po_number"):
+            tool_notes["po_bad"] = True
         history.append({"role": "assistant", "content": json.dumps(parsed)})
-        history.append({"role": "user", "content": f"Tool {tool} result:\n{json.dumps(result)[:1500]}\nNext: one more tool call OR final decision JSON."})
+        history.append({"role": "user", "content": f"Tool {tool} result:\n{json.dumps(result)[:1500]}\nNext: one more tool call OR final decision JSON with 'thought'."})
     else:
         pass
     decided = invoice["id"] in ap.decisions
@@ -176,11 +221,15 @@ def run_invoice_or(ap, invoice, playbook_text, max_turns=4) -> dict:
         ap.decisions[invoice["id"]] = {"decision": dec, "reason": reason + " [rule-assist]"}
         used_fallback = True
     latency = round(time.time() - t0, 2)
+    # Reflexion-style trace: thoughts + tool evidence go back to the Coach.
+    trace = {"thoughts": thoughts, "tool_notes": tool_notes,
+             "refined": any(t.get("self_refine") for t in transcript)}
     # Free models cost $0; track tokens as efficiency metric.
     return {"invoice_id": invoice["id"], "tool_calls": tool_calls,
             "latency_s": latency, "tokens_in": tokens_in,
             "tokens_out": tokens_out, "cost_usd": 0.0,
-            "fallback": used_fallback, "model": ""}
+            "fallback": used_fallback, "model": "",
+            "thoughts": thoughts, "trace": trace}
 
 
 def tags_for_invoice(ap, invoice):

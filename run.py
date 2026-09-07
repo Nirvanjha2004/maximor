@@ -66,10 +66,18 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
     for run_no in range(start_no, start_no + runs):
         ap = APSystem()
         per_invoice = []
-        for inv in invoices:
+        # Voyager-style curriculum: easy invoices first so early lessons compound.
+        # Within-run order does not affect that run's accuracy (memory updates
+        # after the run), but it stabilises which lessons get reinforced first.
+        def _curriculum_key(inv):
+            amt = float(inv.get("amount", 0))
+            po = (inv.get("po_number") or "").strip()
+            return (0 if amt <= 500 else 1, 0 if po else 1, inv.get("id", ""))
+        ordered = sorted(invoices, key=_curriculum_key)
+        for inv in ordered:
             tags = observable_tags(ap, inv)
-            pb_text = playbook.render(tags)
-            retrieved = playbook.relevant(tags)
+            pb_text = playbook.render(tags, current_run=run_no)
+            retrieved = playbook.relevant(tags, current_run=run_no)
             if mode == "mock":
                 from agent.referee import load_expected
                 tag = next(e["reason_tag"] for e in load_expected()
@@ -79,13 +87,28 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
                 from agent.worker_or import run_invoice_or
                 m = run_invoice_or(ap, inv, pb_text)
             m["playbook_lessons_used"] = len(retrieved)
+            m["playbook_lesson_ids"] = [l.get("id") for l in retrieved]
             per_invoice.append(m)
             total_in += m.get("tokens_in", 0)
             total_out += m.get("tokens_out", 0)
             total_tools += m.get("tool_calls", 0)
         graded = grade(ap)
-        # Coach step
+        # ExpeL-style credit assignment: reinforce lessons that helped, prune those
+        # that misled — bad memory is worse than no memory.
+        correct_by_id = {r["invoice_id"]: r["correct"] for r in graded["results"]}
+        for m in per_invoice:
+            playbook.apply_outcome(m.get("playbook_lesson_ids", []),
+                                   bool(correct_by_id.get(m["invoice_id"], False)),
+                                   run_no)
+        # Coach step (Reflexion-style: give the coach the failed thought trace
+        # so lessons fix the credit-assignment point, not just the outcome).
         failures = graded["failures"]
+        thoughts_by_id = {m["invoice_id"]: m.get("thoughts", []) or []
+                          for m in per_invoice}
+        for f in failures:
+            th = thoughts_by_id.get(f["invoice_id"], [])
+            if th and "thought_trace" not in f:
+                f["thought_trace"] = th[:3]
         if mode == "mock":
             lessons = coach_mock(failures, lambda inv: observable_tags(APSystem(), inv), run_no)[:max_lessons]
         else:

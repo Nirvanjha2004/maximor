@@ -33,6 +33,7 @@ def coach_llm(failures, tag_fn, invoices_by_id, max_lessons=LESSONS_PER_RUN):
             "invoice": {k: inv.get(k) for k in ("id", "vendor_name", "amount", "po_number", "invoice_date")},
             "expected": f.get("expected"), "got": f.get("got"),
             "category": f.get("reason_tag"), "agent_reason": (f.get("agent_reason") or "")[:160],
+            "thought_trace": (f.get("thought_trace") or [])[:3],
         })
     prompt = ("Failures:\n" + json.dumps(rows, indent=1) +
               "\nWrite lessons that would prevent these failures.")
