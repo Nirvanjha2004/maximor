@@ -61,11 +61,22 @@ def lesson_violation(lesson: str) -> str:
     if re.search(r"tolerance|2%|exceeds po|outside tolerance|over tolerance", tl) \
             and re.search(r"\breject\b", tl) and not _has_negation(t):
         return "POL-002 (tolerance breach -> ESCALATE, never REJECT)"
+    if re.search(r"regardless of duplicate|duplicate.{0,20}insufficient|insufficient.{0,20}reject", tl):
+        return "POL-004 (duplicate history is decisive; do not overrule it)"
+    if re.search(r"\bL\d{2}\b", t):
+        return "fragile lesson-ID citation (IDs renumber; cite POL-00x instead)"
     return ""
 
 
 def is_valid_lesson(lesson: str) -> bool:
     return lesson_violation(lesson) == ""
+
+
+def strip_lesson_citations(text: str) -> str:
+    """Remove fragile 'per L03' style citations (IDs renumber on prune)."""
+    t = re.sub(r"\s*\bper\s+L\d{2}(?:\s*[,/]\s*L?\d{2})*\.?", "", text)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
 
 
 def normalize_name(s: str) -> str:
@@ -133,6 +144,7 @@ class Playbook:
         self.lessons = []
         self.last_filtered = []  # lessons rejected by the quality filter
         self.migrated_pruned = 0  # pre-existing lessons pruned on load
+        self.migrated_edited = 0  # pre-existing lessons EDIT-tightened on load
         if self.path.exists():
             try:
                 raw = json.loads(self.path.read_text(encoding="utf-8"))
@@ -148,16 +160,38 @@ class Playbook:
                 l.setdefault("id", f"L{i + 1:02d}")
             # One-time migration: prune stored lessons that contradict POL-00x
             # (run-3 coach wrote e.g. 'reject recurring patterns', '12-month
-            # lookback'). Bad memory is worse than no memory.
+            # lookback'; run-6 coach wrote 'approve regardless of duplicate
+            # flags'). Bad memory is worse than no memory.
             kept = []
             for l in raw:
                 v = lesson_violation(l.get("lesson", ""))
-                if v:
+                if v.startswith("fragile lesson-ID"):
+                    # Good content, fragile citation: EDIT-strip it instead.
+                    l["lesson"] = strip_lesson_citations(l.get("lesson", ""))
+                    if lesson_violation(l["lesson"]):
+                        self.migrated_pruned += 1
+                        self.last_filtered.append({"lesson": l.get("lesson", "")[:160],
+                                                   "reason": v})
+                    else:
+                        kept.append(l)
+                        self.migrated_edited += 1
+                elif v:
                     self.migrated_pruned += 1
                     self.last_filtered.append({"lesson": l.get("lesson", "")[:160],
                                                "reason": v})
                 else:
                     kept.append(l)
+            # ExpeL-style EDIT: tighten imprecise duplicate-window wording that
+            # misled run-6 INV-1004 ("within 30 days" -> strict 1-30d-before;
+            # same-day rows are the same record, cf. INV-0998).
+            for l in kept:
+                if "duplicate" in (l.get("tags") or []) and re.search(
+                        r"within 30 days", l.get("lesson", ""), re.I):
+                    l["lesson"] = re.sub(
+                        r"within 30 days", "1-30 days strictly before the invoice date "
+                        "(same-day rows are the same record, not a duplicate)",
+                        l["lesson"], flags=re.I)
+                    self.migrated_edited += 1
             self.lessons = kept
             for i, l in enumerate(self.lessons):
                 l["id"] = f"L{i + 1:02d}"
@@ -183,6 +217,9 @@ class Playbook:
             if not lesson:
                 continue
             v = lesson_violation(lesson)
+            if v.startswith("fragile lesson-ID"):
+                lesson = strip_lesson_citations(lesson)
+                v = lesson_violation(lesson)
             if v:
                 self.last_filtered.append({"lesson": lesson[:160], "reason": v})
                 continue

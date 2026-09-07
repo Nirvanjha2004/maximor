@@ -106,8 +106,9 @@ def run_loop(mode="mock", runs=3, fresh=False, max_lessons=4):
                                         reason_tag=tag_by_id.get(m["invoice_id"], ""))
             for k in vote_totals:
                 vote_totals[k] += st.get(k, 0)
-        if playbook.migrated_pruned:
-            print(f"   playbook: pruned {playbook.migrated_pruned} POL-contradicting lesson(s) on load")
+        if playbook.migrated_pruned or playbook.migrated_edited:
+            print(f"   playbook: pruned {playbook.migrated_pruned} + edited "
+                  f"{playbook.migrated_edited} POL-contradicting lesson(s) on load")
         # Coach step (Reflexion-style: give the coach the failed thought trace
         # so lessons fix the credit-assignment point, not just the outcome).
         failures = graded["failures"]
