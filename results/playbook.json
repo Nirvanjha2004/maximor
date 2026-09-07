@@ -10,10 +10,10 @@
       "unknown_vendor"
     ],
     "added_run": 1,
-    "importance": 9,
-    "successes": 10,
-    "failures": 3,
-    "last_used_run": 4
+    "importance": 14,
+    "successes": 16,
+    "failures": 4,
+    "last_used_run": 5
   },
   {
     "id": "L02",
@@ -25,10 +25,10 @@
       "unknown_vendor"
     ],
     "added_run": 1,
-    "importance": 9,
-    "successes": 10,
-    "failures": 3,
-    "last_used_run": 4
+    "importance": 10,
+    "successes": 12,
+    "failures": 4,
+    "last_used_run": 5
   },
   {
     "id": "L03",
@@ -39,10 +39,10 @@
       "unknown_vendor"
     ],
     "added_run": 1,
-    "importance": 3,
-    "successes": 3,
+    "importance": 5,
+    "successes": 5,
     "failures": 2,
-    "last_used_run": 4
+    "last_used_run": 5
   },
   {
     "id": "L04",
@@ -52,10 +52,10 @@
       "unknown_vendor"
     ],
     "added_run": 1,
-    "importance": 2,
-    "successes": 2,
+    "importance": 3,
+    "successes": 3,
     "failures": 2,
-    "last_used_run": 4
+    "last_used_run": 5
   },
   {
     "id": "L05",
@@ -69,10 +69,10 @@
       "unknown_vendor"
     ],
     "added_run": 2,
-    "importance": 9,
-    "successes": 10,
-    "failures": 3,
-    "last_used_run": 4
+    "importance": 14,
+    "successes": 16,
+    "failures": 4,
+    "last_used_run": 5
   },
   {
     "id": "L06",
@@ -85,10 +85,10 @@
       "unknown_vendor"
     ],
     "added_run": 2,
-    "importance": 9,
-    "successes": 10,
-    "failures": 3,
-    "last_used_run": 4
+    "importance": 10,
+    "successes": 12,
+    "failures": 4,
+    "last_used_run": 5
   },
   {
     "id": "L07",
@@ -99,10 +99,10 @@
       "unknown_vendor"
     ],
     "added_run": 2,
-    "importance": 3,
-    "successes": 3,
+    "importance": 5,
+    "successes": 5,
     "failures": 2,
-    "last_used_run": 4
+    "last_used_run": 5
   },
   {
     "id": "L08",
@@ -113,9 +113,9 @@
     ],
     "added_run": 2,
     "importance": 2,
-    "successes": 2,
-    "failures": 2,
-    "last_used_run": 4
+    "successes": 3,
+    "failures": 3,
+    "last_used_run": 5
   },
   {
     "id": "L09",
@@ -127,10 +127,10 @@
       "unknown_vendor"
     ],
     "added_run": 3,
-    "importance": 9,
-    "successes": 10,
-    "failures": 3,
-    "last_used_run": 4
+    "importance": 10,
+    "successes": 12,
+    "failures": 4,
+    "last_used_run": 5
   },
   {
     "id": "L10",
@@ -153,26 +153,13 @@
       "unknown_vendor"
     ],
     "added_run": 3,
-    "importance": 3,
-    "successes": 3,
-    "failures": 2,
-    "last_used_run": 4
+    "importance": 4,
+    "successes": 5,
+    "failures": 3,
+    "last_used_run": 5
   },
   {
     "id": "L12",
-    "lesson": "Verify recurring invoice patterns across extended lookback windows (minimum 12 months) and reject if similar invoices exist, even without PO match confirmation (POL-0005).",
-    "tags": [
-      "duplicate",
-      "recurring"
-    ],
-    "added_run": 3,
-    "importance": 3,
-    "successes": 1,
-    "failures": 0,
-    "last_used_run": 4
-  },
-  {
-    "id": "L13",
     "lesson": "Verify the PO is open and the amount is within tolerance before approving (POL-002).",
     "tags": [
       "name_variant",
@@ -181,26 +168,26 @@
       "unknown_vendor"
     ],
     "added_run": 4,
-    "last_used_run": 4,
-    "importance": 2,
-    "successes": 0,
-    "failures": 0
+    "last_used_run": 5,
+    "importance": 7,
+    "successes": 5,
+    "failures": 1
   },
   {
-    "id": "L14",
+    "id": "L13",
     "lesson": "For invoices over $500, compare the invoice amount to the PO amount: approve only if within +/-2%, otherwise ESCALATE (POL-002). Never skip this check.",
     "tags": [
       "tolerance",
       "tolerance_breach"
     ],
     "added_run": 4,
-    "last_used_run": 4,
-    "importance": 2,
-    "successes": 0,
+    "last_used_run": 5,
+    "importance": 4,
+    "successes": 2,
     "failures": 0
   },
   {
-    "id": "L15",
+    "id": "L14",
     "lesson": "Call lookup_invoice_history for vendor+amount: if a match was processed within 30 days of the invoice date, REJECT as duplicate (POL-004).",
     "tags": [
       "duplicate",
@@ -209,9 +196,9 @@
       "unknown_vendor"
     ],
     "added_run": 4,
-    "last_used_run": 4,
-    "importance": 2,
-    "successes": 0,
-    "failures": 0
+    "last_used_run": 5,
+    "importance": 4,
+    "successes": 2,
+    "failures": 1
   }
 ]

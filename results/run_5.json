@@ -1,0 +1,591 @@
+{
+  "run": 5,
+  "mode": "live",
+  "accuracy": 0.8667,
+  "correct": 13,
+  "total": 15,
+  "failures": 2,
+  "lessons_added": 0,
+  "total_lessons": 14,
+  "lessons_filtered": 0,
+  "votes": {
+    "upvoted": 35,
+    "downvoted": 9,
+    "skipped": 82,
+    "pruned": 0
+  },
+  "avg_tool_calls": 0.27,
+  "tokens_in": 3031,
+  "tokens_out": 754,
+  "cost_usd": 0.0,
+  "results": [
+    {
+      "invoice_id": "INV-1001",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "small_auto",
+      "agent_reason": "Known vendor, open PO, small amount $480, no duplicate detected"
+    },
+    {
+      "invoice_id": "INV-1002",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Small invoice, known vendor, valid open PO (POL-001). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1003",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1004",
+      "expected": "APPROVE",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "po_match",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1005",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "missing_po",
+      "agent_reason": "Missing or invalid PO; human review required (POL-003). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1006",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "risk_vendor",
+      "agent_reason": "Vendor risk-flagged: Pending tax-compliance review (finance hold) (POL-006). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1007",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "recurring_legit",
+      "agent_reason": "Amount within 2% of PO PO-4523 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1008",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Amount differs >2% from PO PO-4523; controller review (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1009",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount within 2% of PO PO-4530 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1010",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "closed_po",
+      "agent_reason": "PO PO-4412 is closed; escalate to procurement (POL-007). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1011",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "unknown_vendor",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1012",
+      "expected": "REJECT",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "duplicate",
+      "agent_reason": "Vendor not found in master; onboarding required (POL-005). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1013",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount within 2% of PO PO-4471 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1014",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Amount within 2% of PO PO-4482 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1015",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount within 2% of PO PO-4501 (POL-002). [rule-assist]"
+    }
+  ],
+  "new_lessons": [
+    {
+      "lesson": "Verify the PO is open and the amount is within tolerance before approving (POL-002).",
+      "tags": [
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "Call lookup_invoice_history for vendor+amount: if a match was processed within 30 days of the invoice date, REJECT as duplicate (POL-004).",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    }
+  ],
+  "per_invoice": [
+    {
+      "invoice_id": "INV-1001",
+      "tool_calls": 3,
+      "latency_s": 50.22,
+      "tokens_in": 2574,
+      "tokens_out": 567,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Starting triage for INV-1001: $480 from Acme Freight with PO-4471. First check if vendor is known.",
+        "Vendor is known and active (no risk). Now verify the PO-4471 is open and matches the amount.",
+        "PO-4471 is open and matches vendor vnd_001. Amount $480 is well within PO. Check invoice history to rule out duplicate (POL-004).",
+        "All checks pass: known vendor (active, no risk), open PO matches vendor, $480 is small (\u2264$500), and no recent duplicate found. POL-001 auto-approve applies."
+      ],
+      "trace": {
+        "thoughts": [
+          "Starting triage for INV-1001: $480 from Acme Freight with PO-4471. First check if vendor is known.",
+          "Vendor is known and active (no risk). Now verify the PO-4471 is open and matches the amount.",
+          "PO-4471 is open and matches vendor vnd_001. Amount $480 is well within PO. Check invoice history to rule out duplicate (POL-004).",
+          "All checks pass: known vendor (active, no risk), open PO matches vendor, $480 is small (\u2264$500), and no recent duplicate found. POL-001 auto-approve applies."
+        ],
+        "tool_notes": {
+          "po_amount": 12000.0
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 0,
+      "playbook_lesson_ids": []
+    },
+    {
+      "invoice_id": "INV-1002",
+      "tool_calls": 1,
+      "latency_s": 53.75,
+      "tokens_in": 457,
+      "tokens_out": 187,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [
+        "Starting triage for INV-1002. First, I'll check if ACME FREIGHT is a known vendor in our system."
+      ],
+      "trace": {
+        "thoughts": [
+          "Starting triage for INV-1002. First, I'll check if ACME FREIGHT is a known vendor in our system."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 0,
+      "playbook_lesson_ids": []
+    },
+    {
+      "invoice_id": "INV-1011",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 12,
+      "playbook_lesson_ids": [
+        "L01",
+        "L05",
+        "L02",
+        "L06",
+        "L09",
+        "L03",
+        "L07",
+        "L04",
+        "L12",
+        "L14",
+        "L11",
+        "L08"
+      ]
+    },
+    {
+      "invoice_id": "INV-1003",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 13,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L14",
+        "L04",
+        "L03",
+        "L07",
+        "L11",
+        "L08",
+        "L13"
+      ]
+    },
+    {
+      "invoice_id": "INV-1004",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 13,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L14",
+        "L04",
+        "L03",
+        "L07",
+        "L11",
+        "L08",
+        "L13"
+      ]
+    },
+    {
+      "invoice_id": "INV-1006",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 9,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L11",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1007",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L06",
+        "L01",
+        "L02",
+        "L05",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1008",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1009",
+      "tool_calls": 0,
+      "latency_s": 0.02,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1010",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1012",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 13,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L14",
+        "L04",
+        "L03",
+        "L07",
+        "L11",
+        "L08",
+        "L13"
+      ]
+    },
+    {
+      "invoice_id": "INV-1013",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1014",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1015",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 8,
+      "playbook_lesson_ids": [
+        "L01",
+        "L02",
+        "L05",
+        "L06",
+        "L09",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    },
+    {
+      "invoice_id": "INV-1005",
+      "tool_calls": 0,
+      "latency_s": 0.01,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [],
+      "trace": {
+        "thoughts": [],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 10,
+      "playbook_lesson_ids": [
+        "L01",
+        "L05",
+        "L02",
+        "L06",
+        "L09",
+        "L03",
+        "L07",
+        "L12",
+        "L13",
+        "L14"
+      ]
+    }
+  ],
+  "timestamp": "2026-09-07T04:53:22.298408+00:00"
+}
