@@ -48,19 +48,29 @@ this is the cost/speed control judges asked about.
 | 1 | mock (pipeline self-test) | 33.3% (5/15) | 4.00 | +4 |
 | 2 | mock | 80.0% (12/15) | 3.07 | +3 |
 | 3 | mock | 100% (15/15) | 2.67 | +0 |
-| 1 | **live (OpenRouter free model)** | **86.7% (13/15)** | 2.27 | +4 |
-| 2 | **live** | **86.7% (13/15)** | 3.13 | +4 |
-| 3 | **live** | **93.3% (14/15)** | 3.20 | +4 |
+| 1 | **live (OpenRouter free model)** | **86.7% (13/15)** | 2.27 | +4 (4) |
+| 2 | **live** | **86.7% (13/15)** | 3.13 | +4 (8) |
+| 3 | **live** | **93.3% (14/15)** | 3.20 | +4 (12) |
+| 4 | **live (self-learning v2: thoughts + voting)** | **80.0% (12/15)** | 2.40 | +3 (15) |
+| 5 | **live (fine credit + quality filter)** | **86.7% (13/15)** | 0.27 | +0 (14) |
+| 6 | **live (PO vendor resolution)** | **93.3% (14/15)** | 3.53 | +3 (17) |
+| 7 | **live (cleaned memory)** | **100% (15/15)** | 3.20 | +0 (15) |
 
 * Mock = offline pipeline self-test (simulated characteristic mistakes; proves
   the Try → Grade → Teach → Remember loop end-to-end with zero spend).
-* Live = real free-model validation (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`,
-  $0.00 cost, **86.7% → 93.3%, +6.7pp**). See `results/run_*.json` + `results/summary.json`.
+* Live = real free-model validation (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
+  with fallbacks, $0.00 cost, **86.7% → 100%, +13.3pp**).
+  Runs 4–7 harden the loop with arXiv-driven upgrades: ReAct thought traces,
+  ExpeL-style voted memory + fine credit, POL-00x coach filter, PO-linked
+  vendor resolution, strict 1–30d duplicate window. Dips at runs 4–5 are
+  documented (noisy coach lessons + free-tier throttle); runs 6–7 recover to
+  93.3% → 100%. See `results/run_*.json` + `results/summary.json`.
   Run `python report.py` to reprint this table.
 
 Tricky cases the memory learns: `ACME FREIGHT` vs `Acme Freight`
-(name_variant), duplicate vs 30-day recurring billing, ±2% PO tolerance,
-risk-flagged vendors, closed POs, missing/invalid POs.
+(name_variant), `Byte Foods` PO-linked vendor resolution, duplicate (strict
+1–30d-before window) vs 30-day+ recurring billing, same-day rows are the same
+record, ±2% PO tolerance, risk-flagged vendors, closed POs, missing/invalid POs.
 
 ## Quickstart
 
