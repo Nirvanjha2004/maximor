@@ -1,0 +1,696 @@
+{
+  "run": 4,
+  "mode": "live",
+  "accuracy": 0.8,
+  "correct": 12,
+  "total": 15,
+  "failures": 3,
+  "lessons_added": 3,
+  "total_lessons": 15,
+  "avg_tool_calls": 2.4,
+  "tokens_in": 47741,
+  "tokens_out": 19731,
+  "cost_usd": 0.0,
+  "results": [
+    {
+      "invoice_id": "INV-1001",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "small_auto",
+      "agent_reason": "Amount <= $500 with known vendor and open PO"
+    },
+    {
+      "invoice_id": "INV-1002",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Invoice amount $420 \u2264 $500 with known active vendor and open PO"
+    },
+    {
+      "invoice_id": "INV-1003",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Vendor not in master and invoice amount exceeds PO tolerance (10% vs required 2%)."
+    },
+    {
+      "invoice_id": "INV-1004",
+      "expected": "APPROVE",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "po_match",
+      "agent_reason": "PO matches amount and is open; vendor relationship established via PO, satisfying POL-002 and allowing approval despite vendor master gap [self-refine: POL-005 unknown vendor -> ESCALATE]",
+      "thought_trace": [
+        "Initiate vendor lookup for Byte Foods to verify if vendor is in master and check for any risk flags.",
+        "Vendor not found; now verify PO-4482 exists and matches invoice details to determine if vendor can be considered established per PO.",
+        "Vendor not found in master but PO-4482 exists, is open, and matches invoice amount (3500) within 2% tolerance; per POL-002 and L01 we can approve and flag for vendor master enrichment."
+      ]
+    },
+    {
+      "invoice_id": "INV-1005",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "missing_po",
+      "agent_reason": "Missing PO for invoice over $500 threshold."
+    },
+    {
+      "invoice_id": "INV-1006",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "risk_vendor",
+      "agent_reason": "Vendor has active risk flag pending tax compliance review"
+    },
+    {
+      "invoice_id": "INV-1007",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "recurring_legit",
+      "agent_reason": "Amount within 2% of PO PO-4523 (POL-002). [rule-assist]"
+    },
+    {
+      "invoice_id": "INV-1008",
+      "expected": "ESCALATE",
+      "got": "REJECT",
+      "correct": false,
+      "reason_tag": "tolerance_breach",
+      "agent_reason": "Invoice amount exceeds PO by 15% (23000 vs 20000), violating POL-002 requirement of within 2% variance for invoices over 500.",
+      "thought_trace": [
+        "First, check if vendor Northwind exists in vendor master to determine if it's known or unknown.",
+        "Vendor is known and active with no risk flag. Now check if PO-4523 exists and its status (open/closed) and amount.",
+        "Check for existing invoices from Northwind with amount around 23000 to see if this is a duplicate or already processed."
+      ]
+    },
+    {
+      "invoice_id": "INV-1009",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Open PO matches amount within 2% tolerance; no duplicates or policy violations detected"
+    },
+    {
+      "invoice_id": "INV-1010",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "closed_po",
+      "agent_reason": "PO is closed"
+    },
+    {
+      "invoice_id": "INV-1011",
+      "expected": "ESCALATE",
+      "got": "ESCALATE",
+      "correct": true,
+      "reason_tag": "unknown_vendor",
+      "agent_reason": "Vendor not found in master and no PO number provided"
+    },
+    {
+      "invoice_id": "INV-1012",
+      "expected": "REJECT",
+      "got": "ESCALATE",
+      "correct": false,
+      "reason_tag": "duplicate",
+      "agent_reason": "PO-4482 is open, amount matches within 2%, vendor exists in PO (Byte Foods LLC), no duplicate, vendor master gap to be resolved later [self-refine: POL-005 unknown vendor -> ESCALATE]",
+      "thought_trace": [
+        "Need to verify if vendor 'Byte Foods' exists in the master record.",
+        "Vendor not found, need to check if PO-4482 exists and its associated vendor",
+        "Check if this invoice (or a duplicate) already exists in invoice history for PO-4482 and amount 3500."
+      ]
+    },
+    {
+      "invoice_id": "INV-1013",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount >500 with matching open PO within tolerance; vendor verified; no duplicates or risk flags."
+    },
+    {
+      "invoice_id": "INV-1014",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "name_variant",
+      "agent_reason": "Vendor and PO exist, amount matches, no duplicates, and no risk flags; meets POL-002 for amounts over 500 with open PO."
+    },
+    {
+      "invoice_id": "INV-1015",
+      "expected": "APPROVE",
+      "got": "APPROVE",
+      "correct": true,
+      "reason_tag": "po_match",
+      "agent_reason": "Amount within 2% of PO PO-4501 (POL-002). [rule-assist]"
+    }
+  ],
+  "new_lessons": [
+    {
+      "lesson": "Verify the PO is open and the amount is within tolerance before approving (POL-002).",
+      "tags": [
+        "name_variant",
+        "po_match",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    },
+    {
+      "lesson": "For invoices over $500, compare the invoice amount to the PO amount: approve only if within +/-2%, otherwise ESCALATE (POL-002). Never skip this check.",
+      "tags": [
+        "tolerance",
+        "tolerance_breach"
+      ]
+    },
+    {
+      "lesson": "Call lookup_invoice_history for vendor+amount: if a match was processed within 30 days of the invoice date, REJECT as duplicate (POL-004).",
+      "tags": [
+        "duplicate",
+        "name_variant",
+        "tolerance",
+        "unknown_vendor"
+      ]
+    }
+  ],
+  "per_invoice": [
+    {
+      "invoice_id": "INV-1001",
+      "tool_calls": 3,
+      "latency_s": 22.54,
+      "tokens_in": 2729,
+      "tokens_out": 1164,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Check if vendor Acme Freight is known in the system",
+        "Vendor is known and active. Now check PO-4471 status and amount",
+        "Check recent invoices from Acme Freight Inc to see if there is any within 30 days that might trigger POL-004",
+        "Vendor is known and active, PO is open, amount $480 <= $500, no recent same vendor/amount invoice, meets POL-001 auto-approve criteria"
+      ],
+      "trace": {
+        "thoughts": [
+          "Check if vendor Acme Freight is known in the system",
+          "Vendor is known and active. Now check PO-4471 status and amount",
+          "Check recent invoices from Acme Freight Inc to see if there is any within 30 days that might trigger POL-004",
+          "Vendor is known and active, PO is open, amount $480 <= $500, no recent same vendor/amount invoice, meets POL-001 auto-approve criteria"
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 0,
+      "playbook_lesson_ids": []
+    },
+    {
+      "invoice_id": "INV-1002",
+      "tool_calls": 2,
+      "latency_s": 5.87,
+      "tokens_in": 1940,
+      "tokens_out": 389,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Need to verify vendor ACME FREIGHT exists and is known to the system before proceeding.",
+        "Vendor is valid. Now verify PO-4471 exists and is open within 2% of $420.",
+        "Vendor ACME FREIGHT is valid and active. PO-4471 is open with $12,000, and invoice amount $420 is \u2264 $500, meeting POL-001 auto-approve criteria."
+      ],
+      "trace": {
+        "thoughts": [
+          "Need to verify vendor ACME FREIGHT exists and is known to the system before proceeding.",
+          "Vendor is valid. Now verify PO-4471 exists and is open within 2% of $420.",
+          "Vendor ACME FREIGHT is valid and active. PO-4471 is open with $12,000, and invoice amount $420 is \u2264 $500, meeting POL-001 auto-approve criteria."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 0,
+      "playbook_lesson_ids": []
+    },
+    {
+      "invoice_id": "INV-1011",
+      "tool_calls": 1,
+      "latency_s": 13.77,
+      "tokens_in": 2029,
+      "tokens_out": 516,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Look up vendor 'Sunrise Catering' to see if it exists in the master data.",
+        "Vendor 'Sunrise Catering' is not in the master (unknown vendor) and there is no PO number. This matches POL-005 (unknown vendor) and POL-003 (missing PO). Therefore the invoice must be escalated."
+      ],
+      "trace": {
+        "thoughts": [
+          "Look up vendor 'Sunrise Catering' to see if it exists in the master data.",
+          "Vendor 'Sunrise Catering' is not in the master (unknown vendor) and there is no PO number. This matches POL-005 (unknown vendor) and POL-003 (missing PO). Therefore the invoice must be escalated."
+        ],
+        "tool_notes": {
+          "vendor_bad": true,
+          "po_bad": true
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 10,
+      "playbook_lesson_ids": [
+        "L05",
+        "L01",
+        "L09",
+        "L06",
+        "L07",
+        "L02",
+        "L03",
+        "L04",
+        "L11",
+        "L08"
+      ]
+    },
+    {
+      "invoice_id": "INV-1003",
+      "tool_calls": 2,
+      "latency_s": 31.66,
+      "tokens_in": 3251,
+      "tokens_out": 2389,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Initiate vendor lookup for Byte Foods to verify if vendor is known and check for any risk flags.",
+        "Vendor not found, need to verify PO existence to determine if vendor relationship exists via PO.",
+        "Vendor not found in master but PO-4482 exists and matches description; however invoice amount 3850 is 10% higher than PO amount 3500, exceeding the 2% tolerance required by POL-002, and vendor master data is missing, so escalation is needed to verify details before approval."
+      ],
+      "trace": {
+        "thoughts": [
+          "Initiate vendor lookup for Byte Foods to verify if vendor is known and check for any risk flags.",
+          "Vendor not found, need to verify PO existence to determine if vendor relationship exists via PO.",
+          "Vendor not found in master but PO-4482 exists and matches description; however invoice amount 3850 is 10% higher than PO amount 3500, exceeding the 2% tolerance required by POL-002, and vendor master data is missing, so escalation is needed to verify details before approval."
+        ],
+        "tool_notes": {
+          "vendor_bad": true
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 10,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02",
+        "L04",
+        "L11",
+        "L07",
+        "L08",
+        "L03"
+      ]
+    },
+    {
+      "invoice_id": "INV-1004",
+      "tool_calls": 2,
+      "latency_s": 31.16,
+      "tokens_in": 3251,
+      "tokens_out": 1889,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Initiate vendor lookup for Byte Foods to verify if vendor is in master and check for any risk flags.",
+        "Vendor not found; now verify PO-4482 exists and matches invoice details to determine if vendor can be considered established per PO.",
+        "Vendor not found in master but PO-4482 exists, is open, and matches invoice amount (3500) within 2% tolerance; per POL-002 and L01 we can approve and flag for vendor master enrichment."
+      ],
+      "trace": {
+        "thoughts": [
+          "Initiate vendor lookup for Byte Foods to verify if vendor is in master and check for any risk flags.",
+          "Vendor not found; now verify PO-4482 exists and matches invoice details to determine if vendor can be considered established per PO.",
+          "Vendor not found in master but PO-4482 exists, is open, and matches invoice amount (3500) within 2% tolerance; per POL-002 and L01 we can approve and flag for vendor master enrichment."
+        ],
+        "tool_notes": {
+          "vendor_bad": true
+        },
+        "refined": true
+      },
+      "playbook_lessons_used": 10,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02",
+        "L04",
+        "L11",
+        "L07",
+        "L08",
+        "L03"
+      ]
+    },
+    {
+      "invoice_id": "INV-1006",
+      "tool_calls": 1,
+      "latency_s": 78.03,
+      "tokens_in": 1695,
+      "tokens_out": 645,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Check if vendor NovaTech exists in vendor master.",
+        "Vendor NovaTech exists but has a risk_flag (pending tax-compliance review). According to POL-006, any risk_flag requires escalation."
+      ],
+      "trace": {
+        "thoughts": [
+          "Check if vendor NovaTech exists in vendor master.",
+          "Vendor NovaTech exists but has a risk_flag (pending tax-compliance review). According to POL-006, any risk_flag requires escalation."
+        ],
+        "tool_notes": {
+          "risk": true
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 6,
+      "playbook_lesson_ids": [
+        "L09",
+        "L11",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1007",
+      "tool_calls": 3,
+      "latency_s": 20.25,
+      "tokens_in": 3959,
+      "tokens_out": 1274,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [
+        "First, look up vendor Northwind to see if it exists in the master record and check any risk flags.",
+        "Vendor is active with no risk flag. Now check the PO existence and status.",
+        "Check for duplicate invoices (same vendor and amount) within the last 30 days to apply POL-004."
+      ],
+      "trace": {
+        "thoughts": [
+          "First, look up vendor Northwind to see if it exists in the master record and check any risk flags.",
+          "Vendor is active with no risk flag. Now check the PO existence and status.",
+          "Check for duplicate invoices (same vendor and amount) within the last 30 days to apply POL-004."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 6,
+      "playbook_lesson_ids": [
+        "L06",
+        "L09",
+        "L12",
+        "L05",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1008",
+      "tool_calls": 3,
+      "latency_s": 48.81,
+      "tokens_in": 3766,
+      "tokens_out": 2277,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "First, check if vendor Northwind exists in vendor master to determine if it's known or unknown.",
+        "Vendor is known and active with no risk flag. Now check if PO-4523 exists and its status (open/closed) and amount.",
+        "Check for existing invoices from Northwind with amount around 23000 to see if this is a duplicate or already processed.",
+        "Vendor is known and PO is open, but invoice amount 23000 exceeds PO amount 20000 by 15%, violating POL-002 which requires amount within 2% of PO for invoices over 500. Since the variance is too large and no other policy permits approval, the invoice must be rejected."
+      ],
+      "trace": {
+        "thoughts": [
+          "First, check if vendor Northwind exists in vendor master to determine if it's known or unknown.",
+          "Vendor is known and active with no risk flag. Now check if PO-4523 exists and its status (open/closed) and amount.",
+          "Check for existing invoices from Northwind with amount around 23000 to see if this is a duplicate or already processed.",
+          "Vendor is known and PO is open, but invoice amount 23000 exceeds PO amount 20000 by 15%, violating POL-002 which requires amount within 2% of PO for invoices over 500. Since the variance is too large and no other policy permits approval, the invoice must be rejected."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1009",
+      "tool_calls": 3,
+      "latency_s": 27.18,
+      "tokens_in": 3753,
+      "tokens_out": 2086,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Need to verify if Vertex Mfg is a known vendor in the system before proceeding.",
+        "Vendor exists (Vertex Manufacturing) but amount >500, so need to verify open PO within 2% tolerance per POL-002.",
+        "Check for duplicate invoices using vendor name and amount to verify POL-004 compliance (same vendor + amount within 30 days).",
+        "Vendor is known (Vertex Manufacturing), PO is open with matching amount ($1150), no duplicates found, and amount within 2% tolerance per POL-002. Onboarding status doesn't block approval per POL-005 since PO exists and matches."
+      ],
+      "trace": {
+        "thoughts": [
+          "Need to verify if Vertex Mfg is a known vendor in the system before proceeding.",
+          "Vendor exists (Vertex Manufacturing) but amount >500, so need to verify open PO within 2% tolerance per POL-002.",
+          "Check for duplicate invoices using vendor name and amount to verify POL-004 compliance (same vendor + amount within 30 days).",
+          "Vendor is known (Vertex Manufacturing), PO is open with matching amount ($1150), no duplicates found, and amount within 2% tolerance per POL-002. Onboarding status doesn't block approval per POL-005 since PO exists and matches."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1010",
+      "tool_calls": 2,
+      "latency_s": 14.99,
+      "tokens_in": 2537,
+      "tokens_out": 751,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Check if vendor Acme Freight exists in vendor master.",
+        "Vendor exists and is active. Now check if PO-4412 exists and is open.",
+        "PO-4412 is closed, violating POL-007 (closed PO requires escalation)."
+      ],
+      "trace": {
+        "thoughts": [
+          "Check if vendor Acme Freight exists in vendor master.",
+          "Vendor exists and is active. Now check if PO-4412 exists and is open.",
+          "PO-4412 is closed, violating POL-007 (closed PO requires escalation)."
+        ],
+        "tool_notes": {
+          "po_closed": true
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1012",
+      "tool_calls": 3,
+      "latency_s": 39.76,
+      "tokens_in": 4541,
+      "tokens_out": 2028,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Need to verify if vendor 'Byte Foods' exists in the master record.",
+        "Vendor not found, need to check if PO-4482 exists and its associated vendor",
+        "Check if this invoice (or a duplicate) already exists in invoice history for PO-4482 and amount 3500.",
+        "Vendor not found in master but PO-4482 exists with matching amount and is open; no duplicate invoice found. Amount >500 but within 2% of PO amount, so POL-002 satisfied. Vendor established via PO per L05, so not a valid escalation reason. Approve with note to enrich vendor master."
+      ],
+      "trace": {
+        "thoughts": [
+          "Need to verify if vendor 'Byte Foods' exists in the master record.",
+          "Vendor not found, need to check if PO-4482 exists and its associated vendor",
+          "Check if this invoice (or a duplicate) already exists in invoice history for PO-4482 and amount 3500.",
+          "Vendor not found in master but PO-4482 exists with matching amount and is open; no duplicate invoice found. Amount >500 but within 2% of PO amount, so POL-002 satisfied. Vendor established via PO per L05, so not a valid escalation reason. Approve with note to enrich vendor master."
+        ],
+        "tool_notes": {
+          "vendor_bad": true
+        },
+        "refined": true
+      },
+      "playbook_lessons_used": 10,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02",
+        "L04",
+        "L11",
+        "L07",
+        "L08",
+        "L03"
+      ]
+    },
+    {
+      "invoice_id": "INV-1013",
+      "tool_calls": 3,
+      "latency_s": 21.04,
+      "tokens_in": 3790,
+      "tokens_out": 1372,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Verify if Acme Freight is a known vendor and check for any risk flags or enrichment status before proceeding.",
+        "Check if PO-4471 exists and is open within 2% of $12,000.",
+        "Check for any existing invoices for Acme Freight with amount $12,000 to detect duplicates before approving.",
+        "Vendor is known and active, PO is open for the exact amount, no duplicate invoices found, and no risk flags. Policies allow approval."
+      ],
+      "trace": {
+        "thoughts": [
+          "Verify if Acme Freight is a known vendor and check for any risk flags or enrichment status before proceeding.",
+          "Check if PO-4471 exists and is open within 2% of $12,000.",
+          "Check for any existing invoices for Acme Freight with amount $12,000 to detect duplicates before approving.",
+          "Vendor is known and active, PO is open for the exact amount, no duplicate invoices found, and no risk flags. Policies allow approval."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1014",
+      "tool_calls": 3,
+      "latency_s": 31.98,
+      "tokens_in": 3698,
+      "tokens_out": 1342,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Need to verify if vendor 'bytefoods' is known, check for risk flags or enrichment status before proceeding.",
+        "Vendor 'bytefoods' is found and active with no risk flags. Now check if PO-4482 exists and is open with matching amount.",
+        "Check for existing invoices from the same vendor with matching amount to detect duplicates within 30 days (POL-004).",
+        "Vendor is known and active, PO is open with matching amount, no duplicate invoices found, and no risk flags. All policy conditions for approval are satisfied."
+      ],
+      "trace": {
+        "thoughts": [
+          "Need to verify if vendor 'bytefoods' is known, check for risk flags or enrichment status before proceeding.",
+          "Vendor 'bytefoods' is found and active with no risk flags. Now check if PO-4482 exists and is open with matching amount.",
+          "Check for existing invoices from the same vendor with matching amount to detect duplicates within 30 days (POL-004).",
+          "Vendor is known and active, PO is open with matching amount, no duplicate invoices found, and no risk flags. All policy conditions for approval are satisfied."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1015",
+      "tool_calls": 3,
+      "latency_s": 15.06,
+      "tokens_in": 3911,
+      "tokens_out": 767,
+      "cost_usd": 0.0,
+      "fallback": true,
+      "model": "",
+      "thoughts": [
+        "Check if vendor Osprey Media exists in vendor master.",
+        "Check existence and status of PO-4501.",
+        "Check for existing invoices from Osprey Media with amount 48000 to detect duplicates within 30 days."
+      ],
+      "trace": {
+        "thoughts": [
+          "Check if vendor Osprey Media exists in vendor master.",
+          "Check existence and status of PO-4501.",
+          "Check for existing invoices from Osprey Media with amount 48000 to detect duplicates within 30 days."
+        ],
+        "tool_notes": {},
+        "refined": false
+      },
+      "playbook_lessons_used": 5,
+      "playbook_lesson_ids": [
+        "L09",
+        "L05",
+        "L06",
+        "L01",
+        "L02"
+      ]
+    },
+    {
+      "invoice_id": "INV-1005",
+      "tool_calls": 2,
+      "latency_s": 16.67,
+      "tokens_in": 2891,
+      "tokens_out": 842,
+      "cost_usd": 0.0,
+      "fallback": false,
+      "model": "",
+      "thoughts": [
+        "Need to verify if Osprey Media is a known vendor in the system before proceeding.",
+        "Vendor is known (Osprey Media Group). Now check for any existing PO linked to this invoice (amount $12,000) via invoice history to see if a PO exists.",
+        "Vendor is known and active with no risk flag. Invoice amount $12,000 exceeds $500 threshold and lacks a PO number (po_number is null). According to POL-002, invoices over $500 require an open PO within 2% tolerance; missing PO triggers POL-003 (missing/invalid PO -> ESCALATE). No duplicate found in "
+      ],
+      "trace": {
+        "thoughts": [
+          "Need to verify if Osprey Media is a known vendor in the system before proceeding.",
+          "Vendor is known (Osprey Media Group). Now check for any existing PO linked to this invoice (amount $12,000) via invoice history to see if a PO exists.",
+          "Vendor is known and active with no risk flag. Invoice amount $12,000 exceeds $500 threshold and lacks a PO number (po_number is null). According to POL-002, invoices over $500 require an open PO within 2% tolerance; missing PO triggers POL-003 (missing/invalid PO -> ESCALATE). No duplicate found in "
+        ],
+        "tool_notes": {
+          "po_bad": true
+        },
+        "refined": false
+      },
+      "playbook_lessons_used": 7,
+      "playbook_lesson_ids": [
+        "L05",
+        "L01",
+        "L09",
+        "L06",
+        "L07",
+        "L02",
+        "L03"
+      ]
+    }
+  ],
+  "timestamp": "2026-09-07T04:30:16.988131+00:00"
+}

@@ -9,7 +9,11 @@
       "tolerance",
       "unknown_vendor"
     ],
-    "added_run": 1
+    "added_run": 1,
+    "importance": 9,
+    "successes": 10,
+    "failures": 3,
+    "last_used_run": 4
   },
   {
     "id": "L02",
@@ -20,7 +24,11 @@
       "tolerance",
       "unknown_vendor"
     ],
-    "added_run": 1
+    "added_run": 1,
+    "importance": 9,
+    "successes": 10,
+    "failures": 3,
+    "last_used_run": 4
   },
   {
     "id": "L03",
@@ -30,7 +38,11 @@
       "missing_po",
       "unknown_vendor"
     ],
-    "added_run": 1
+    "added_run": 1,
+    "importance": 3,
+    "successes": 3,
+    "failures": 2,
+    "last_used_run": 4
   },
   {
     "id": "L04",
@@ -39,7 +51,11 @@
       "name_variant",
       "unknown_vendor"
     ],
-    "added_run": 1
+    "added_run": 1,
+    "importance": 2,
+    "successes": 2,
+    "failures": 2,
+    "last_used_run": 4
   },
   {
     "id": "L05",
@@ -52,7 +68,11 @@
       "tolerance",
       "unknown_vendor"
     ],
-    "added_run": 2
+    "added_run": 2,
+    "importance": 9,
+    "successes": 10,
+    "failures": 3,
+    "last_used_run": 4
   },
   {
     "id": "L06",
@@ -64,7 +84,11 @@
       "tolerance",
       "unknown_vendor"
     ],
-    "added_run": 2
+    "added_run": 2,
+    "importance": 9,
+    "successes": 10,
+    "failures": 3,
+    "last_used_run": 4
   },
   {
     "id": "L07",
@@ -74,7 +98,11 @@
       "missing_po",
       "unknown_vendor"
     ],
-    "added_run": 2
+    "added_run": 2,
+    "importance": 3,
+    "successes": 3,
+    "failures": 2,
+    "last_used_run": 4
   },
   {
     "id": "L08",
@@ -83,7 +111,11 @@
       "duplicate",
       "unknown_vendor"
     ],
-    "added_run": 2
+    "added_run": 2,
+    "importance": 2,
+    "successes": 2,
+    "failures": 2,
+    "last_used_run": 4
   },
   {
     "id": "L09",
@@ -94,7 +126,11 @@
       "tolerance",
       "unknown_vendor"
     ],
-    "added_run": 3
+    "added_run": 3,
+    "importance": 9,
+    "successes": 10,
+    "failures": 3,
+    "last_used_run": 4
   },
   {
     "id": "L10",
@@ -102,7 +138,11 @@
     "tags": [
       "duplicate"
     ],
-    "added_run": 3
+    "added_run": 3,
+    "importance": 2,
+    "successes": 0,
+    "failures": 0,
+    "last_used_run": 3
   },
   {
     "id": "L11",
@@ -112,7 +152,11 @@
       "risk_vendor",
       "unknown_vendor"
     ],
-    "added_run": 3
+    "added_run": 3,
+    "importance": 3,
+    "successes": 3,
+    "failures": 2,
+    "last_used_run": 4
   },
   {
     "id": "L12",
@@ -121,6 +165,53 @@
       "duplicate",
       "recurring"
     ],
-    "added_run": 3
+    "added_run": 3,
+    "importance": 3,
+    "successes": 1,
+    "failures": 0,
+    "last_used_run": 4
+  },
+  {
+    "id": "L13",
+    "lesson": "Verify the PO is open and the amount is within tolerance before approving (POL-002).",
+    "tags": [
+      "name_variant",
+      "po_match",
+      "tolerance",
+      "unknown_vendor"
+    ],
+    "added_run": 4,
+    "last_used_run": 4,
+    "importance": 2,
+    "successes": 0,
+    "failures": 0
+  },
+  {
+    "id": "L14",
+    "lesson": "For invoices over $500, compare the invoice amount to the PO amount: approve only if within +/-2%, otherwise ESCALATE (POL-002). Never skip this check.",
+    "tags": [
+      "tolerance",
+      "tolerance_breach"
+    ],
+    "added_run": 4,
+    "last_used_run": 4,
+    "importance": 2,
+    "successes": 0,
+    "failures": 0
+  },
+  {
+    "id": "L15",
+    "lesson": "Call lookup_invoice_history for vendor+amount: if a match was processed within 30 days of the invoice date, REJECT as duplicate (POL-004).",
+    "tags": [
+      "duplicate",
+      "name_variant",
+      "tolerance",
+      "unknown_vendor"
+    ],
+    "added_run": 4,
+    "last_used_run": 4,
+    "importance": 2,
+    "successes": 0,
+    "failures": 0
   }
 ]
